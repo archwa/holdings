@@ -1,0 +1,2 @@
+#!/bin/bash
+pip3 freeze | grep $1 >> requirements.txt
