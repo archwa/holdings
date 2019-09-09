@@ -16,7 +16,7 @@ setup:
 	$(PYTHON) -m venv $(VENV_NAME) --prompt=$(VENV_PROMPT)
 	@printf "\n[$@] Creating symlink to activation script ...\n"
 	ln -sf $(VENV_NAME)/bin/activate
-	@printf "\n[$@] Adding project directory to PATH in activation script ...\n"
+	@printf "\n[$@] Adding project utils directory to PATH in activation script ...\n"
 	sed -i --follow-symlinks 's/^PATH="\(.*\)"/PATH="$$VIRTUAL_ENV\/\.\.\/utils:\1"/' activate
 	@printf "\n[$@] Installing / updating dependencies ...\n"
 	source activate && $(PIP) install -U -r $(DEP_FILE)
