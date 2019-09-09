@@ -19,6 +19,8 @@ setup:
 clean:
 	@printf "[$@] Removing Python virtual environment (if exists) ...\n"
 	rm -rf .pyenv activate
+	@printf "\n[$@] Removing __pycache__ (if exists) ...\n"
+	find . -depth -type d -path ./.pyenv -prune -o -name __pycache__ -exec rm -rf {} \;
 	@printf "\nCleaning complete.\n"
 
 run:
