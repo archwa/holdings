@@ -36,7 +36,7 @@ make clean
 
 ## dependency management
 
-Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `.` to PATH, excluding `./` from `./dep`, resulting in the easier `dep`.*
+Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
 
 ```bash
 dep add  <PYTHON_PKG_KEYWORD>
