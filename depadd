@@ -1,3 +1,15 @@
 #!/bin/bash
-pip3 freeze | grep $1 >> requirements.txt
-sort requirements.txt -o requirements.txt
+
+DEP_FILE=requirements.txt
+
+if [ -z $1 ]
+then
+  printf "Please provide a dependency argument.\n"
+else
+  printf "Adding dependency to $DEP_FILE ...\n"
+  pip3 freeze | grep $1 >> $DEP_FILE
+  printf "Sorting $DEP_FILE ...\n"
+  sort $DEP_FILE -o $DEP_FILE
+  printf "\n"
+  cat $DEP_FILE
+fi
