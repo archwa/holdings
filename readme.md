@@ -1,6 +1,10 @@
 # gghc
 
-## setup
+## housekeeping
+
+Managing the project directory.
+
+### setup
 
 First, set up the project.
 
@@ -8,7 +12,7 @@ First, set up the project.
 make setup
 ```
 
-## virtual environment
+### virtual environment
 
 To enter the Python virtual environment and begin work, source the activation script.
 
@@ -22,7 +26,7 @@ To leave the Python virtual environment, deactivate.
 deactivate
 ```
 
-## clean
+### clean
 
 To remove the Python virtual environment and built files:
 
