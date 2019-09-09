@@ -12,8 +12,8 @@ setup:
 	$(PYTHON) -m venv .pyenv --prompt=gghc
 	@printf "\n[$@] Creating symlink to activation script ...\n"
 	ln -sf .pyenv/bin/activate
-	@printf "\n[$@] Installing dependencies ...\n"
-	source activate && $(PIP) install -r requirements.txt
+	@printf "\n[$@] Installing / updating dependencies ...\n"
+	source activate && $(PIP) install -U -r requirements.txt
 	@printf "\nTo complete setup, run \"source activate\".\n"
 
 clean:
