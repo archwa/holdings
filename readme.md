@@ -6,7 +6,6 @@ First, set up the project.
 
 ```bash
 make setup
-source activate
 ```
 
 ## virtual environment
@@ -23,3 +22,10 @@ To leave the Python virtual environment, deactivate.
 deactivate
 ```
 
+## clean
+
+To remove the Python virtual environment and built files:
+
+```bash
+make clean
+```
