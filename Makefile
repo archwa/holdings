@@ -20,3 +20,7 @@ clean:
 	@printf "[$@] Removing Python virtual environment (if exists) ...\n"
 	rm -rf .pyenv activate
 	@printf "\nCleaning complete.\n"
+
+run:
+	
+
