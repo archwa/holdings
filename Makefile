@@ -1,4 +1,4 @@
-.PHONY: all setup
+.PHONY: all setup clean
 
 SHELL:=/bin/bash
 PIP=pip3
@@ -15,3 +15,8 @@ setup:
 	@printf "\n[$@] Installing dependencies ...\n"
 	source activate && $(PIP) install -r requirements.txt
 	@printf "\nTo complete setup, run \"source activate\".\n"
+
+clean:
+	@printf "[$@] Removing Python virtual environment (if exists) ...\n"
+	rm -rf .pyenv activate
+	@printf "\nCleaning complete.\n"
