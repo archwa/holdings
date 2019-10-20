@@ -1,4 +1,4 @@
-.PHONY: all run setup clean
+.PHONY: all run run-client run-server setup clean
 
 SHELL:=/bin/bash
 VENV_NAME=.pyenv
@@ -7,9 +7,16 @@ PIP=pip3
 PYTHON=python3
 DEP_FILE=requirements.txt
 
-all:
+all: # empty recipe
 	
-run:
+run: run-client run-server
+
+run-col:
+	$(PYTHON) src/col.py
+
+run-client: # empty recipe
+  
+run-server: # empty recipe
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"
@@ -18,13 +25,28 @@ setup:
 	ln -sf $(VENV_NAME)/bin/activate
 	@printf "\n[$@] Adding project utils directory to PATH in activation script ...\n"
 	sed -i --follow-symlinks 's/^PATH="\(.*\)"/PATH="$$VIRTUAL_ENV\/\.\.\/utils:\1"/' activate
-	@printf "\n[$@] Installing / updating dependencies ...\n"
-	source activate && $(PIP) install -U -r $(DEP_FILE)
-	@printf "\nTo complete setup, run \"source activate\".\n"
+	@printf "\n[$@] Checking that \"$(DEP_FILE)\" exists and is not empty ... "
+	@if [ -s $(DEP_FILE) ]; then \
+    printf "SUCCESS\n"; \
+		printf "> Installing / updating dependencies ...\n"; \
+		source activate && $(PIP) install -U -r $(DEP_FILE); \
+	else \
+    printf "FAIL\n"; \
+    touch $(DEP_FILE); \
+		printf "> File \"$(DEP_FILE)\" either does not exist or is empty, so I (re)created one for you.\n"; \
+    printf "> Add dependencies using \"dep add <DEPENDENCY_KEYWORD>\".\n"; \
+	fi
+	@printf "\nTo complete setup and enter the development environment, run \"source activate\".\n"
+	@printf "To exit the development environment, run \"deactivate\".\n"
 
 clean:
 	@printf "[$@] Removing Python virtual environment (if exists) ...\n"
 	rm -rf $(VENV_NAME) activate
 	@printf "\n[$@] Removing all __pycache__ dirs (if exists) ...\n"
+	find . -depth -type d -path ./$(VENV_NAME) -prune -o -name __pycache__ -exec rm -rf {} \;
+	@printf "\nCleaning complete.\n"
+
+clean-pycache:
+	@printf "[$@] Removing all __pycache__ dirs (if exists) ...\n"
 	find . -depth -type d -path ./$(VENV_NAME) -prune -o -name __pycache__ -exec rm -rf {} \;
 	@printf "\nCleaning complete.\n"
