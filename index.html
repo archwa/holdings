@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <style type="text/css">
+      table {
+        border: 1px solid black;
+        margin: 5px;
+      }
+
+      td {
+        border: 1px solid black;
+        padding: 5px;
+        margin: 2px;
+      }
+    </style>
+    <script src="https://s3.amazonaws.com/stitch-sdks/js/bundles/4.4.0/stitch.js"></script>
+    <script>
+
+      // returns database client for given database name
+      function init_dbc(db_name) {
+        const {
+          Stitch,
+          RemoteMongoClient,
+          UserApiKeyCredential
+        } = stitch;
+        
+        // login credential (using API key)
+        const credential = new UserApiKeyCredential();
+        
+        // initialize client
+        const client = Stitch.initializeDefaultAppClient("filings-uypee");
+        
+        // TODO : run test to determine whether connection was successful
+
+        // login, then return the database client object
+        return client.auth.loginWithCredential(credential)
+        .then(user => {
+          const mongodb = client.getServiceClient(
+            RemoteMongoClient.factory,
+            "mongodb-atlas"
+          );
+          const db = mongodb.db(db_name);
+          return db;
+        });
+      }
+
+      const dbc = init_dbc("test");
+      const periods = dbc.then(d => d.collection("periods"));
+
+      function go_fund(fund_name) {
+        document.getElementById("fund").innerHTML = "Searching for fund and gathering securities ...<br/>";
+
+        periods.then(per => {
+          return per.find({}, {
+              sort: {
+                quarters: -1
+              },
+              where: {
+                cik: fund_name
+              }
+            })
+          .asArray()
+          .then(securities => {
+            document.getElementById("fund").innerHTML += "Calculating fund summary ...<br/>";
+
+            // determine total average length of all holdings
+            let count = 0;
+            let total = 0;
+
+            for(i = 0; i < securities.length; i++) {
+              count += 1;
+              total += securities[i].quarters;
+            }
+
+            const avg = total / count;
+            
+            document.getElementById("fund").innerHTML += "<br/>Average length of <strong>all</strong> holdings:<br/>" + avg + " quarters, or<br/>" + (avg / 4) + " years.<br/>";
+            
+            return securities;
+          })
+          .then(securities => {
+            // input the table and add rows
+            document.getElementById("fund").innerHTML += "<table><tr><td><strong>Security (CUSIP #)</strong></td><td><strong>From</strong></td><td><strong>To</strong></td><td><strong>Total Quarters Held</strong></td></tr>";
+
+            for(i = 0; i < securities.length; i++) {
+              const { cusip, from, to, quarters } = securities[i];
+
+              document.getElementById("fund").innerHTML += "<tr><td>" + cusip + "</td><td>" + from + "</td><td>" + to + "</td><td>" + quarters + "</td></tr>";
+            }
+            
+            document.getElementById("fund").innerHTML += "</table>";
+          })
+          .catch(err => {
+            document.getElementById("fund").innerHTML += "Whoops!  An error occurred: " + err + "<br/>";
+            console.error(err);
+          });
+        });
+      }
+
+      function go_ticker(ticker_name) {
+        document.getElementById("stock").innerHTML = "Searching for ticker and gathering funds ...<br/>";
+
+        periods.then(per => {
+          return per.find({}, {
+              sort: {
+                quarters: -1
+              },
+              where: {
+                cusip: fund_name
+              }
+            })
+          .asArray()
+          .then(securities => {
+            document.getElementById("stock").innerHTML += "Calculating ticker summary ...<br/>";
+
+            // do work here; show longest holders + possibly longest holders historically
+
+            // show longest holders historically
+            if(document.getElementById("hold_hist").checked) {
+              
+            }
+          });
+        })
+        .catch(err => {
+          document.getElementById("stock").innerHTML += "Whoops!  An error occurred: " + err + "<br/>";
+          console.error(err);
+        });
+      }
+    </script>
+  </head>
+
+  <body>
+    <h1>Historical Holdings</h1>
+    <h2>Fund Summary</h2>
+    <p>
+      Show:
+      <ul>
+        <li>Average length of ownership of stocks historically</li>
+        <li>Current positions sorted by length of ownership</li>
+      </ul>
+      Input fund name: <input type="text" id="fund_name"/> <input type="button" onclick="go_fund(document.getElementById('fund_name').value)" value="GO"/>
+    </p>
+    
+    <div id="fund"></div>
+
+    <h2>Stock Summary</h2>
+    <p>
+      Show:
+      <ul>
+        <li>Longest current holders</li>
+        <li>Longest holders historically<input type="checkbox" id="hold_hist"/></li>
+      </ul>
+      Input stock ticker: <input type="text" id="ticker_name"/> <input type="button" onclick="go_ticker(document.getElementById('ticker_name').value)" value="GO"/>
+    </p>
+
+    <div id="stock"></div>
+  </body>
+</html>
