@@ -39,7 +39,7 @@ make clean
 Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
 
 ```bash
-dep add  <PYTHON_PKG_KEYWORD>
-dep list <PYTHON_PKG_KEYWORD>
-dep rm   <PYTHON_PKG_KEYWORD>
+dep list  # list dependencies
+dep add  <PYTHON_PKG_KEYWORD>  # add dependency with keyword from 'pip freeze'
+dep rm   <PYTHON_PKG_KEYWORD>  # remove dependency with keyword from $(DEP_FILE)
 ```
