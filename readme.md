@@ -4,6 +4,15 @@
 
 Managing the project directory.
 
+## dependencies
+
+These packages are required.
+
+- make
+- perl
+- python3
+- python3-venv
+
 ### setup
 
 First, set up the project.
