@@ -41,6 +41,7 @@ for (my $y = 2001;  $y <= 2018;  $y++) {
 # https://www.investopedia.com/terms/f/form-13f.asp
 sub parse_13f {
   my ($fn, $data) = @_;
+  # open filehandler
   open (my $fh, '<:encoding(UTF-8)', $fn)
     or die "Could not open file '$filename' $!";
   my ($period, $text) = ('', 0);
@@ -142,3 +143,11 @@ while (<>) {
     get_13f_list ($1);
   } 
 }
+
+# disconnect the MongoDB client so the script may exit (is this necessary? good idea anyway)
+$client->disconnect;
+
+# we're done
+print "Script finished.  Client disconnected.";
+print "Exiting now ...";
+exit 0;
