@@ -1,4 +1,4 @@
-.PHONY: all run run-client run-server setup clean
+.PHONY: all run run-client info-db update-db setup clean
 
 SHELL:=/bin/bash
 VENV_NAME=.pyenv
@@ -9,14 +9,17 @@ DEP_FILE=requirements.txt
 
 all: # empty recipe
 	
-run: run-client run-server
-
-run-col:
-	$(PYTHON) src/col.py
+run: run-client
 
 run-client: # empty recipe
-  
-run-server: # empty recipe
+
+info-db:
+	@printf "[$@] Running script to show existing MongoDB collections ...\n"
+	$(PYTHON) src/col.py
+
+update-db:
+	@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
+	eval $$(egrep -v '^#' \.env | xargs) ./src/sec.pl
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"
