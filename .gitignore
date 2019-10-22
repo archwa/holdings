@@ -1,4 +1,5 @@
+.env
+.pyenv
 __pycache__
-.*
 activate
 data
