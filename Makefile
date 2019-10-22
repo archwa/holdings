@@ -11,15 +11,15 @@ all: # empty recipe
 	
 run: run-client
 
-run-client: # empty recipe
+run-client: # empty recipe (for now)
 
 info-db:
 	@printf "[$@] Running script to show existing MongoDB collections ...\n"
-	$(PYTHON) src/col.py
+	$(PYTHON) src/$@.py
 
 update-db:
 	@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
-	eval $$(egrep -v '^#' \.env | xargs) ./src/sec.pl
+	eval $$(egrep -v '^#' \.env | xargs) ./src/$@.pl
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"
