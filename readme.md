@@ -42,6 +42,14 @@ To leave the Python virtual environment, deactivate.
 deactivate
 ```
 
+### using the project nodejs version
+
+In the project base directory, do:
+
+```bash
+nvm use
+```
+
 ### clean
 
 To remove the Python virtual environment and built files:
