@@ -9,10 +9,16 @@ Managing the project directory.
 These packages are required.
 
 - make
-- perl
-- python3
-- python3-pip
-- python3-venv
+- nodejs, npm
+- perl (for now ...)
+- python3, python3-pip, python3-venv
+
+It would be useful to have Node Version Manager (see https://github.com/nvm-sh/nvm):
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+# or
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+```
 
 ### setup
 
