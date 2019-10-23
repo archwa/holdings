@@ -27,13 +27,14 @@ export class UserInterface extends React.Component {
   }
   
   render() {
-    return (<>
+    return (<div>
       <UserInput
         handleSubmission={ this._handleSubmission } // pass down submission handler to store results
       />
+      <br/>
       <ResultsFormatter
-        results={ this.state.submissionResults }
+        results={ this.state.submissionResults? this.state.submissionResults :undefined }
       />
-    </>);
+    </div>);
   }
 };
