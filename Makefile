@@ -9,9 +9,11 @@ DEP_FILE=requirements.txt
 
 all: # empty recipe
 	
-run: run-client
+run: run-web-client
 
-run-client: # empty recipe (for now)
+run-web-client: # empty recipe (for now)
+	@printf "[$@] Running client app ...\n"
+	cd src/client/web && npm start
 
 info-db:
 	@printf "[$@] Running script to show existing MongoDB collections ...\n"
@@ -19,7 +21,7 @@ info-db:
 
 update-db:
 	@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
-	eval $$(egrep -v '^#' \.env | xargs) ./src/$@.pl
+	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/$@.pl
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"
