@@ -127,7 +127,7 @@ sub get_13f_list {
 }
 
 sub add_cik_mapping {
-  my ($fund, $cik) = @_;
+  my ($cik, $fund) = @_;
 
   my $json = "{ cik: \'$cik\', name: \'$fund\' }";
   print "Trying to insert $json\n";
