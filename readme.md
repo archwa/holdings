@@ -1,10 +1,10 @@
 # gghc
 
-## housekeeping
+## Housekeeping
 
 Managing the project directory.
 
-## dependencies
+## Dependencies
 
 These packages are required.
 
@@ -20,7 +20,9 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
 ```
 
-### setup
+## Development
+
+### Setup
 
 First, set up the project.
 
@@ -28,7 +30,7 @@ First, set up the project.
 make setup
 ```
 
-### virtual environment
+### Virtual environment
 
 To enter the Python virtual environment and begin work, source the activation script.
 
@@ -42,7 +44,7 @@ To leave the Python virtual environment, deactivate.
 deactivate
 ```
 
-### using the project nodejs version
+### Using the project nodejs version
 
 In the project base directory, do:
 
@@ -58,7 +60,7 @@ To remove the Python virtual environment and built files:
 make clean
 ```
 
-## dependency management
+### Dependency management
 
 Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
 
@@ -67,3 +69,14 @@ dep list  # list dependencies
 dep add  <PYTHON_PKG_KEYWORD>  # add dependency with keyword from 'pip freeze'
 dep rm   <PYTHON_PKG_KEYWORD>  # remove dependency with keyword from $(DEP_FILE)
 ```
+
+## Running the app(s)
+
+### Client
+
+There are two client applications:
+
+- mobile
+- web
+
+To run the `web` client, make sure to run `npm install` within the `src/client/web/` directory.  Once you have done that, you can run the client with `make run-client-web`.
