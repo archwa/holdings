@@ -13,11 +13,14 @@ These packages are required.
 - perl (for now ...)
 - python3, python3-pip, python3-venv
 
-It would be useful to have Node Version Manager (see https://github.com/nvm-sh/nvm):
+### Python dependency management
+
+Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
+
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
-# or
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+dep list  # list dependencies
+dep add  <PYTHON_PKG_KEYWORD>  # add dependency with keyword from 'pip freeze'
+dep rm   <PYTHON_PKG_KEYWORD>  # remove dependency with keyword from $(DEP_FILE)
 ```
 
 ## Development
@@ -30,7 +33,7 @@ First, set up the project.
 make setup
 ```
 
-### Virtual environment
+#### Python virtual environment
 
 To enter the Python virtual environment and begin work, source the activation script.
 
@@ -44,7 +47,7 @@ To leave the Python virtual environment, deactivate.
 deactivate
 ```
 
-### Using the project nodejs version
+#### Use the project nodejs version
 
 In the project base directory, do:
 
@@ -52,7 +55,14 @@ In the project base directory, do:
 nvm use
 ```
 
-### clean
+It would be useful to have Node Version Manager (see https://github.com/nvm-sh/nvm):
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+# or
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+```
+
+### Clean
 
 To remove the Python virtual environment and built files:
 
@@ -60,17 +70,7 @@ To remove the Python virtual environment and built files:
 make clean
 ```
 
-### Dependency management
-
-Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
-
-```bash
-dep list  # list dependencies
-dep add  <PYTHON_PKG_KEYWORD>  # add dependency with keyword from 'pip freeze'
-dep rm   <PYTHON_PKG_KEYWORD>  # remove dependency with keyword from $(DEP_FILE)
-```
-
-## Running the app(s)
+## Running the application
 
 ### Client
 
@@ -79,4 +79,4 @@ There are two client applications:
 - mobile
 - web
 
-To run the `web` client, make sure to run `npm install` within the `src/client/web/` directory.  Once you have done that, you can run the client with `make run-client-web`.
+To run the `web` client, make sure to run `npm install --no-optional` within the `src/client/web/` directory.  Once you have done that, you can run the client with `make run-client-web`.
