@@ -1,9 +1,6 @@
 import React from 'react';
 import './App.css';
 
-// need this to format all semantic ui components
-import 'semantic-ui-css/semantic.min.css';
-
 // need this for the Stitch UI
 import { StitchComponents } from './stitch';
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'lodash';
-import { Table } from 'semantic-ui-react';
 
 export class ResultsGetAverageTimePositionsHeldForFund extends React.Component {
 

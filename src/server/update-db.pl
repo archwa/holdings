@@ -11,12 +11,12 @@ my $client = MongoDB::MongoClient->new(
 );
 
 # connection string
-# my $client = MongoDB->connect('mongodb://scriptuser:Atlas2019@cluster0-gga6t.mongodb.net/test?retryWrites=true');
 my $db = $client->get_database('test');
 
 my $colls = $db->list_collections();
 # print Dumper $colls;
-my $coll = $db->get_collection('periods');
+my $coll_periods = $db->get_collection('periods');
+my $coll_funds = $db->get_collection('funds');
  
 # quarters mappings
 my $quarters = {
@@ -121,30 +121,53 @@ sub get_13f_list {
       my @ps = split (/,/, $p);
       my $json = "{ cik: \'$cik\', cusip: \'$c\', quarters: " . (1+$#ps) . ", from: \'" . $ps[0] . "\', to: \'" . $ps[$#ps] . "\'}";
       print "Trying to insert $json\n";
-      $coll->insert_one ({ cik => $cik, cusip => $c, quarters => (1+$#ps), from => $ps[0], to => $ps[$#ps] });
+      $coll_periods->insert_one ({ cik => $cik, cusip => $c, quarters => (1+$#ps), from => $ps[0], to => $ps[$#ps] });
     }
   } 
 }
 
+sub add_cik_mapping {
+  my ($fund, $cik) = @_;
 
-# get_13f_list ('0000902464');
-my $entries = $coll->find;
+  my $json = "{ cik: \'$cik\', name: \'$fund\' }";
+  print "Trying to insert $json\n";
+  $coll_funds->insert_one ({ cik => $cik, name => $fund });
+}
+
+my $entries = $coll_periods->find;
 while (my $e = $entries->next) {
     print Dumper $e;
 }
 
-# get_13f_list ('0000728100');
-# get_13f_list ('0001540531');
-# get_13f_list ('1214717'); # geode
+# create data/ directory if none exists
+print "Creating \"data/\" directory if none exists ...";
+`mkdir -p data`;
+
 while (<>) {
   chomp;
-  if (/13F/ && !(/bank|corp/i) && /([0-9]{7})\s/) {
-    print "CIK $1\n";
-    get_13f_list ($1);
+  if (/13F/ && !(/bank|corp/i) && /\s([0-9]{7})\s/) {
+    if (/^(13[\-\/0-9A-Z]+)\s+([A-Za-z0-9\s\,\-\.]+)([0-9]{7})/) {
+      my ($fund, $cik) = ($2, $3);
+      $fund =~ s/\s+/ /g;
+      $fund =~ s/\s$//;
+
+      print "CIK $cik\n";
+      print "{$cik => \"$fund\"}\n";
+      
+      # add a cik to fund name mapping to the funds collection
+      add_cik_mapping ($cik, $fund);
+
+      # get all 13F and add to the periods collection after parsing each
+      get_13f_list ($cik);
+    }
   } 
 }
 
-# disconnect the MongoDB client so the script may exit (is this necessary? good idea anyway)
+while (<>) {  # form.idx file piped in
+  chomp;
+}
+
+# disconnect the MongoDB client
 $client->disconnect;
 
 # we're done

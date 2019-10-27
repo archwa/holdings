@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { StitchController } from '../';
-import { Button, Input } from 'semantic-ui-react';
 
 export class UserInput extends React.Component {
   constructor(props) {

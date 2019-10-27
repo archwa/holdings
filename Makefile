@@ -1,4 +1,4 @@
-.PHONY: all run run-client info-db update-db setup clean
+.PHONY: all run run-client-web info-db update-db setup clean
 
 SHELL:=/bin/bash
 VENV_NAME=.pyenv
@@ -9,10 +9,10 @@ DEP_FILE=requirements.txt
 
 all: # empty recipe
 	
-run: run-web-client
+run: run-client-web
 
-run-web-client: # empty recipe (for now)
-	@printf "[$@] Running client app ...\n"
+run-client-web:
+	@printf "[$@] Running client web app ...\n"
 	cd src/client/web && npm start
 
 info-db:
