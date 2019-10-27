@@ -17,11 +17,11 @@ run-web-client: # empty recipe (for now)
 
 info-db:
 	@printf "[$@] Running script to show existing MongoDB collections ...\n"
-	$(PYTHON) src/$@.py
+	$(PYTHON) src/server/$@.py
 
 update-db:
 	@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
-	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/$@.pl
+	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/server/$@.pl
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"
