@@ -1,5 +1,11 @@
 import React from 'react';
 import _ from 'lodash';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow
+} from '@material-ui/core';
 
 export class ResultsGetAverageTimePositionsHeldForFund extends React.Component {
 
@@ -27,33 +33,33 @@ export class ResultsGetAverageTimePositionsHeldForFund extends React.Component {
 
     return (
       <div style={ styles.container }>
-        <Table celled>
-          <Table.Body>
-            <Table.Row key='total'>
-              <Table.Cell>
+        <Table>
+          <TableBody>
+            <TableRow key='total'>
+              <TableCell>
                 <strong>Total Positions Found</strong>
-              </Table.Cell>
-              <Table.Cell>
+              </TableCell>
+              <TableCell>
                 <code>{ data.positionsCount }</code>
-              </Table.Cell>
-            </Table.Row>
-            <Table.Row key='year'>
-              <Table.Cell>
+              </TableCell>
+            </TableRow>
+            <TableRow key='year'>
+              <TableCell>
                 <strong>Average Time Held of All Positions (Years)</strong>
-              </Table.Cell>
-              <Table.Cell>
+              </TableCell>
+              <TableCell>
                 <code>{ Math.round(data.averageLengthOfStockOwnership.years * 1000) / 1000 }</code>
-              </Table.Cell>
-            </Table.Row>
-            <Table.Row key='quarters'>
-              <Table.Cell>
+              </TableCell>
+            </TableRow>
+            <TableRow key='quarters'>
+              <TableCell>
                 <strong>Average Time Held of All Positions (Quarters)</strong>
-              </Table.Cell>
-              <Table.Cell>
+              </TableCell>
+              <TableCell>
                 <code>{ Math.round(data.averageLengthOfStockOwnership.quarters * 1000) / 1000 }</code>
-              </Table.Cell>
-            </Table.Row>
-          </Table.Body>
+              </TableCell>
+            </TableRow>
+          </TableBody>
         </Table>
       </div>
     );

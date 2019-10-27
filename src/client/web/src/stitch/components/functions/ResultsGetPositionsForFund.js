@@ -1,5 +1,12 @@
 import React from 'react';
 import _ from 'lodash';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
+} from '@material-ui/core';
 
 export class ResultsGetPositionsForFund extends React.Component {
 
@@ -58,34 +65,34 @@ export class ResultsGetPositionsForFund extends React.Component {
     return (
       // name the div here? TODO
       <div style={ styles.container }>
-        <Table sortable celled>
-          <Table.Header>
-            <Table.Row>
+        <Table>
+          <TableHead>
+            <TableRow>
               {
                 _.map(columnNames, name => (
-                  <Table.HeaderCell
+                  <TableCell
                     key={ name }
                     sorted={ column === name? direction :null }
                     onClick={ this._handleSort(name) }
                   >
                     { columnNameDisplay[name] }
-                  </Table.HeaderCell>
+                  </TableCell>
                 ))
               }
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {
               _.map(data, ({ cusip, from, to, quarters }, idx) => (
-                  <Table.Row key={ _.join([cusip, '-', idx], '') }>
-                    <Table.Cell><code>{ cusip }</code></Table.Cell>
-                    <Table.Cell><code>{ from }</code></Table.Cell>
-                    <Table.Cell><code>{ to }</code></Table.Cell>
-                    <Table.Cell><code>{ quarters }</code></Table.Cell>
-                  </Table.Row>
+                  <TableRow key={ _.join([cusip, '-', idx], '') }>
+                    <TableCell><code>{ cusip }</code></TableCell>
+                    <TableCell><code>{ from }</code></TableCell>
+                    <TableCell><code>{ to }</code></TableCell>
+                    <TableCell><code>{ quarters }</code></TableCell>
+                  </TableRow>
               ))
             }
-          </Table.Body>
+          </TableBody>
         </Table>
       </div>
     );

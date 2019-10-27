@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { StitchController } from '../';
+import { Input, Button, ButtonGroup } from '@material-ui/core';
 
 export class UserInput extends React.Component {
   constructor(props) {
@@ -97,22 +98,20 @@ export class UserInput extends React.Component {
           value={ this.state.inputValue }
           onChange={ this._handleInputChange }
         />
-        <Button.Group>
+        <ButtonGroup>
           <Button
-            loading={ this.state.loading }
             disabled={ this.state.loading }
             onClick={ () => this._handleClick('fund') }
           >
             Fund
           </Button>
           <Button
-            loading={ this.state.loading }
             disabled={ this.state.loading }
             onClick={ () => this._handleClick('ticker') }
           >
             Ticker
           </Button>
-        </Button.Group>
+        </ButtonGroup>
         <p><code>(Hint:  Try Fund:'1511144' or Ticker:'00206R102'.)</code></p>
       </div>
     );
