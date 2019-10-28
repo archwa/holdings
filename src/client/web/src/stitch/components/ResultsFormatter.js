@@ -31,6 +31,12 @@ export class ResultsFormatter extends React.Component {
     return (
       <div style={ styles.container }>
         {
+          !_.get(results, 'searchForFund.status', -1)?
+            <>Showing results for fund <strong><code>"{ _.get(results, 'searchForFund.data.name', '') }" (CIK : { _.get(results, 'searchForFund.data.cik', '') })</code></strong></>
+          :null
+        }
+
+        {
           // position average information
           !_.get(results, 'getAverageTimePositionsHeldForFund.status', -1)?
             <ResultsGetAverageTimePositionsHeldForFund

@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 
 import { StitchController } from '../';
 import { Input, Button, ButtonGroup } from '@material-ui/core';
@@ -35,21 +36,32 @@ export class UserInput extends React.Component {
 
     switch(name) {
       case 'fund':
-        this.stitch.callFunction('getAverageTimePositionsHeldForFund', [cleanInput, options])
-        .then(results1 => {
-          return this.stitch.callFunction('getPositionsForFund', [cleanInput, options])
-          .then(results2 => {
-            return {
-              'getAverageTimePositionsHeldForFund': results1,
-              'getPositionsForFund': results2
-            };
+        this.stitch.callFunction('searchForFund', [cleanInput])
+        .then(searchResult => {
+          // TODO : check status of result
+          const cik = _.get(searchResult, 'data.cik', null);
+
+          return this.stitch.callFunction('getAverageTimePositionsHeldForFund', [cik, options])
+          .then(avgPosResult => {
+            return this.stitch.callFunction('getPositionsForFund', [cik, options])
+            .then(posForFundResult => {
+
+              return {
+                'searchForFund': searchResult,
+                'getAverageTimePositionsHeldForFund': avgPosResult,
+                'getPositionsForFund': posForFundResult,
+              };
+            })
+            .catch(err => {
+              console.log(err);
+              return {};
+            });
           })
-          .catch(err => {
-            console.log(err);
-            return {};
-          });
         })
-        .then(this.props.handleSubmission)
+        .then(res => {
+          console.log(res);
+          return this.props.handleSubmission(res);
+        })
         .catch(err => {
           console.log(err);
         });
@@ -112,7 +124,6 @@ export class UserInput extends React.Component {
             Ticker
           </Button>
         </ButtonGroup>
-        <p><code>(Hint:  Try Fund:'1511144' or Ticker:'00206R102'.)</code></p>
       </div>
     );
   }
