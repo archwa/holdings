@@ -17,6 +17,7 @@ my $colls = $db->list_collections();
 # print Dumper $colls;
 my $coll_periods = $db->get_collection('periods');
 my $coll_funds = $db->get_collection('funds');
+my $coll_companies = $db->get_collection('companies');
  
 # quarters mappings
 my $quarters = {
@@ -30,7 +31,7 @@ my $quarters = {
 # YYYY in { 2001 .. 2018 }
 # Q    in { 1, 2, 3, 4 }
 my @all_periods = ();
-for (my $y = 2001;  $y <= 2018;  $y++) {
+for (my $y = 2001;  $y <= 2019;  $y++) {
   for (my $q = 1;  $q < 5;  $q++) {
     push (@all_periods, "$y" . "q$q");
   }
@@ -40,7 +41,7 @@ for (my $y = 2001;  $y <= 2018;  $y++) {
 # what is a 13f form?
 # https://www.investopedia.com/terms/f/form-13f.asp
 sub parse_13f {
-  my ($fn, $data) = @_;
+  my ($fn, $data, $companies) = @_;
   # open filehandler
   open (my $fh, '<:encoding(UTF-8)', $fn)
     or die "Could not open file '$filename' $!";
@@ -50,16 +51,20 @@ sub parse_13f {
     if (/CONFORMED PERIOD OF REPORT:\s+(\d+)/) {
       $period = $1;
       $period = substr ($period, 0, 4) . $quarters->{substr ($period, 4, 4)};
+    } elsif (/<nameOfIssuer>([^<]+)/) {
+      my $issuer = $1;
     } elsif (/<cusip>([^<]+)/) {
       my $cusip = $1;
 #      print "   cusip $cusip\n";
       $data->{$cusip}->{$period} = 1;
+      $companies->{$cusip}->issuer = $issuer;
     } elsif (/^<S>/) { 
       $text = 1;
     } elsif ($text && /.+COM\s+([^\s]{9})/) {
       my $cusip = $1;
 #      print "   cusip from text $cusip\n";
       $data->{$cusip}->{$period} = 1;
+      $companies->{$cusip}->issuer = $issuer;
     }
   }
 #  print "Period $period\n";
@@ -69,6 +74,7 @@ sub parse_13f {
 sub get_13f_list {
   my $cik = shift;
   my $data = {};
+  my $companies = {};
   my $fn  = "data/$cik.idx";
 
   if (! -e $fn) {
@@ -95,7 +101,7 @@ sub get_13f_list {
         `mkdir -p $dir`;
         `curl -o '$of' '$url'`;
       }
-      parse_13f ($of, $data);
+      parse_13f ($of, $data, $companies);
     }
   }
   close ($fh);
@@ -122,6 +128,7 @@ sub get_13f_list {
       my $json = "{ cik: \'$cik\', cusip: \'$c\', quarters: " . (1+$#ps) . ", from: \'" . $ps[0] . "\', to: \'" . $ps[$#ps] . "\'}";
       print "Trying to insert $json\n";
       $coll_periods->insert_one ({ cik => $cik, cusip => $c, quarters => (1+$#ps), from => $ps[0], to => $ps[$#ps] });
+      $coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->issuer });
     }
   } 
 }
