@@ -37,6 +37,12 @@ export class ResultsFormatter extends React.Component {
         }
 
         {
+          !_.get(results, 'searchForCompany.status', -1)?
+            <>Showing results for company <strong><code>"{ _.get(results, 'searchForCompany.data.name', '') }" (CUSIP : { _.get(results, 'searchForCompany.data.cusip', '') })</code></strong></>
+          :null
+        }
+
+        {
           // position average information
           !_.get(results, 'getAverageTimePositionsHeldForFund.status', -1)?
             <ResultsGetAverageTimePositionsHeldForFund

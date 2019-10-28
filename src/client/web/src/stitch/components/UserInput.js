@@ -38,6 +38,7 @@ export class UserInput extends React.Component {
       case 'fund':
         this.stitch.callFunction('searchForFund', [cleanInput])
         .then(searchResult => {
+          console.log(searchResult);
           // TODO : check status of result
           const cik = _.get(searchResult, 'data.cik', null);
 
@@ -68,16 +69,27 @@ export class UserInput extends React.Component {
         break;
 
       case 'ticker':
-        this.stitch.callFunction('getHoldersForTicker', [cleanInput, options])
-        .then(results => {
-          return {
-            'getHoldersForTicker': results
-          };
+        this.stitch.callFunction('searchForCompany', [cleanInput])
+        .then(searchResult => {
+          console.log(searchResult);
+          // TODO : check status of result
+          const cusip = _.get(searchResult, 'data.cusip', null);
+          
+          return this.stitch.callFunction('getHoldersForTicker', [cusip, options])
+          .then(results => {
+            return {
+              'searchForCompany': searchResult,
+              'getHoldersForTicker': results
+            };
+          })
+          .catch(err => {
+            console.log(err);
+          })
         })
-        .catch(err => {
-          console.log(err);
+        .then(res => {
+          console.log(res);
+          return this.props.handleSubmission(res);
         })
-        .then(this.props.handleSubmission)
         .catch(err => {
           console.log(err);
         });

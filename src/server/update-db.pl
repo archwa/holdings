@@ -46,25 +46,26 @@ sub parse_13f {
   open (my $fh, '<:encoding(UTF-8)', $fn)
     or die "Could not open file '$filename' $!";
   my ($period, $text) = ('', 0);
+  my $issuer = 0;
  
   while (<$fh>) {
     if (/CONFORMED PERIOD OF REPORT:\s+(\d+)/) {
       $period = $1;
       $period = substr ($period, 0, 4) . $quarters->{substr ($period, 4, 4)};
     } elsif (/<nameOfIssuer>([^<]+)/) {
-      my $issuer = $1;
+      $issuer = $1;
     } elsif (/<cusip>([^<]+)/) {
       my $cusip = $1;
 #      print "   cusip $cusip\n";
       $data->{$cusip}->{$period} = 1;
-      $companies->{$cusip}->issuer = $issuer;
+      $companies->{$cusip}->{'issuer'} = $issuer;
     } elsif (/^<S>/) { 
       $text = 1;
     } elsif ($text && /.+COM\s+([^\s]{9})/) {
       my $cusip = $1;
 #      print "   cusip from text $cusip\n";
       $data->{$cusip}->{$period} = 1;
-      $companies->{$cusip}->issuer = $issuer;
+      $companies->{$cusip}->{'issuer'} = $issuer;
     }
   }
 #  print "Period $period\n";
@@ -128,7 +129,7 @@ sub get_13f_list {
       my $json = "{ cik: \'$cik\', cusip: \'$c\', quarters: " . (1+$#ps) . ", from: \'" . $ps[0] . "\', to: \'" . $ps[$#ps] . "\'}";
       print "Trying to insert $json\n";
       $coll_periods->insert_one ({ cik => $cik, cusip => $c, quarters => (1+$#ps), from => $ps[0], to => $ps[$#ps] });
-      $coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->issuer });
+      $coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->{'issuer'} });
     }
   } 
 }
@@ -141,10 +142,10 @@ sub add_cik_mapping {
   $coll_funds->insert_one ({ cik => $cik, name => $fund });
 }
 
-my $entries = $coll_periods->find;
-while (my $e = $entries->next) {
-    print Dumper $e;
-}
+#my $entries = $coll_periods->find;
+#while (my $e = $entries->next) {
+#    print Dumper $e;
+#}
 
 # create data/ directory if none exists
 print "Creating \"data/\" directory if none exists ...";

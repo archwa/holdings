@@ -54,8 +54,9 @@ export class ResultsGetPositionsForFund extends React.Component {
 
   render() {
     const { column, direction, data } = this.state;
-    const columnNames = [ 'cusip', 'from', 'to', 'quarters' ];
+    const columnNames = [ 'name', 'cusip', 'from', 'to', 'quarters' ];
     const columnNameDisplay = {
+      'name': 'Name',
       'cusip': 'CUSIP',
       'from': 'From',
       'to': 'To',
@@ -83,8 +84,9 @@ export class ResultsGetPositionsForFund extends React.Component {
           </TableHead>
           <TableBody>
             {
-              _.map(data, ({ cusip, from, to, quarters }, idx) => (
+              _.map(data, ({ name, cusip, from, to, quarters }, idx) => (
                   <TableRow key={ _.join([cusip, '-', idx], '') }>
+                    <TableCell><code>{ name }</code></TableCell>
                     <TableCell><code>{ cusip }</code></TableCell>
                     <TableCell><code>{ from }</code></TableCell>
                     <TableCell><code>{ to }</code></TableCell>

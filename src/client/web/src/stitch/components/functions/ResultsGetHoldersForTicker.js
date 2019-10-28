@@ -54,8 +54,9 @@ export class ResultsGetHoldersForTicker extends React.Component {
 
   render() {
     const { column, direction, data } = this.state;
-    const columnNames = [ 'cik', 'from', 'to', 'quarters' ];
+    const columnNames = [ 'name', 'cik', 'from', 'to', 'quarters' ];
     const columnNameDisplay = {
+      'name': 'Name',
       'cik': 'CIK',
       'from': 'From',
       'to': 'To',
@@ -83,8 +84,9 @@ export class ResultsGetHoldersForTicker extends React.Component {
           </TableHead>
           <TableBody>
             {
-              _.map(data, ({ cik, from, to, quarters }, idx) => (
+              _.map(data, ({ name, cik, from, to, quarters }, idx) => (
                   <TableRow key={ _.join([cik, '-', idx], '') }>
+                    <TableCell><code>{ name }</code></TableCell>
                     <TableCell><code>{ cik }</code></TableCell>
                     <TableCell><code>{ from }</code></TableCell>
                     <TableCell><code>{ to }</code></TableCell>
