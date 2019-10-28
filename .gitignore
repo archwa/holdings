@@ -3,3 +3,6 @@
 __pycache__
 activate
 data
+*.tgz
+*.tar.gz
+*.tar.z
