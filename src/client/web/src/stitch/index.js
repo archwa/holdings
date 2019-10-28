@@ -14,12 +14,13 @@ export class StitchController {
     this.sc = {}; // initialize service client object
   }
 
+  // initialize the controller
   async init() {
     try {
-      this.initClientForAppId(process.env.REACT_APP_STITCH_APP_ID);                 // initializes the client
-      await this.loginUsingApiKey(process.env.REACT_APP_STITCH_API_SECRET); // authorizes the client for use
+      this.initClientForAppId(process.env.REACT_APP_STITCH_APP_ID);                            // initializes the client
+      await this.loginUsingApiKey(process.env.REACT_APP_STITCH_API_SECRET);                    // authorizes the client for use
       const mongodb = await this.initServiceClient(process.env.REACT_APP_STITCH_SERVICE_NAME); // initializes MongoDB service client (for database access)
-      await this.initDBFromServiceClient('test', mongodb); // initializes test db for access
+      await this.initDBFromServiceClient('test', mongodb);                                     // initializes test db for access
       return 0;
     }
     catch(err) {
