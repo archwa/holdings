@@ -39,7 +39,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <div className="App-header">
-          <img src={Logo} id="logo" alt="GGHC logo" width={ 938/2 < this.state.window.width * 0.8? 938/2 :Math.round(this.state.window.width * 0.8) }/>
+          { /*<img src={Logo} id="logo" alt="GGHC logo" width={ 938/2 < this.state.window.width * 0.8? 938/2 :Math.round(this.state.window.width * 0.8) }/>*/ }
           <h1>Holdings Analysis</h1>
         </div>
         <div className="App-body">
