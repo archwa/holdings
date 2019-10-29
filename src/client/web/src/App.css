@@ -1,0 +1,30 @@
+@font-face {
+  font-family: 'raleway';
+  font-style: normal;
+  src: url('media/assets/fonts/Raleway/Raleway-Regular.ttf') format('truetype');
+}
+
+.App {
+  font-family: 'raleway';
+}
+
+.App-logo {
+  height: 40vmin;
+}
+
+.App-header {
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  font-family: 'raleway';
+}
+
+.App-body {
+  display: flex;
+  /*flex-direction: column;*/
+  justify-content: center;
+  font-family: 'raleway';
+}

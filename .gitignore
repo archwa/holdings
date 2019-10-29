@@ -1,4 +1,8 @@
+.env
+.pyenv
 __pycache__
-.*
 activate
 data
+*.tgz
+*.tar.gz
+*.tar.z
