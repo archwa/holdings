@@ -5,9 +5,9 @@ use MongoDB;
 
 # create a client
 my $client = MongoDB::MongoClient->new(
-  host => $ENV{'MONGODB_PROTOCOL_SCRIPT'} . '://' . $ENV{'MONGODB_HOST_SCRIPT'},
-  username => $ENV{'MONGODB_USER_SCRIPT'},
-  password => $ENV{'MONGODB_PASS_SCRIPT'},
+  host => $ENV{'MONGODB_PROTOCOL'} . '://' . $ENV{'MONGODB_HOST'},
+  username => $ENV{'MONGODB_USER'},
+  password => $ENV{'MONGODB_PASS'},
 );
 
 # connection string
