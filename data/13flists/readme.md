@@ -8,5 +8,5 @@ Sub-directories are given as year, then quarter (ex. `2019/q3/13flist2019q3.csv`
 
 ## Method of extraction
 
-1. Lists in PDF format are accessed from the [Official List of Section 13(f) Securities](https://www.sec.gov/divisions/investment/13flists.htm) on https://www.sec.gov
-2. Data is extracted and formatted using [Tabula](https://github.com/tabulapdf/tabula)
+1. Lists in PDF format are accessed from the [Official List of Section 13(f) Securities](https://www.sec.gov/divisions/investment/13flists.htm) on https://www.sec.gov.
+2. Data is extracted and formatted using [Tabula](https://github.com/tabulapdf/tabula).
