@@ -4,6 +4,9 @@ YR_START=2004
 YR_CUR=`date +"%Y"`
 QTR_CUR=$(((`date +%-m`-1)/3+1))
 
+# TODO: trim whitespace from all entries
+#       implement validation listed in validate.sh file
+
 for I in `seq ${YR_START} ${YR_CUR}`; do
   for J in `seq 1 4`; do
     if [ ${I} != ${YR_CUR} ] || [ ${J} != ${QTR_CUR} ]; then
