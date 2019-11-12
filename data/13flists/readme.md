@@ -6,6 +6,8 @@ Sub-directories are given as year, then quarter (ex. `2019/q3/13flist2019q3.csv`
 
 *NOTE: In this context, by "security" we mean any type/class of a particular security, and NOT an instance or position of such a security.*
 
+*NOTE: Currently, CSV-formatted 13F lists are only available from 2004q1 onward.*
+
 ## Method of extraction
 
 1. Lists in PDF format are accessed from the [Official List of Section 13(f) Securities](https://www.sec.gov/divisions/investment/13flists.htm) on https://www.sec.gov.
