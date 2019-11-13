@@ -39,20 +39,22 @@ def cusip_checksum(cusip):
 
 data_directory = '../../data/13flists/'
 
-for ddir in os.listdir(data_directory):
+for ddir in sorted(os.listdir(data_directory)):
   year_re = re.compile('[0-9]{4}');
   if year_re.match(ddir):
     year = ddir
 
-    for qtr in os.listdir(data_directory+ddir):
+    for qtr in sorted(os.listdir(data_directory+ddir)):
       csv_path = data_directory+year+'/'+qtr+'/13flist'+year+qtr+'.csv'
       df = pd.read_csv(csv_path, na_values='')
+
+      print(f'Working on {year}{qtr} ...')
 
       for idx, row in df.iterrows():
         status = str(row['status']).strip().lower()
         status = 'none' if status != 'deleted' and status != 'added' else status
 
-        # only include updates after 2003q4
+        # only insert deltas after 2003q4
         if status != 'none' or (int(year) == 2003 and int(qtr[1]) == 4):
           cusip = ''.join(str(row['cusip']).split())
           options = True if str(row['options']).strip() == '*' else False
@@ -75,5 +77,35 @@ for ddir in os.listdir(data_directory):
             'given_checksum': gc,
             'computed_checksum': cusip_checksum(cusip[0:8]),
           }
+          #pprint(obj)
 
-          pprint(obj)
+          securities_search = db.securities.find({
+            'cusip9': obj['cusip9'],
+          })
+
+          # if cusip exists and is not deleted, this insertion had better be a 'status':'delete'
+
+          # delta checks: is this a valid insertion?
+          latest_year = 0
+          latest_quarter = 0
+          latest_status = 0
+
+          for security in securities_search:
+            if security['year'] > latest_year:
+              latest_year = security['year']
+              latest_quarter = security['quarter']
+              latest_status = security['status']
+            elif security['year'] == latest_year:
+              if security['quarter'] > latest_quarter:
+                latest_quarter = security['quarter']
+                latest_status = security['status']
+              elif security['quarter'] == latest_quarter:
+                latest_status = security['status']
+          
+          if obj['year'] > latest_year and (obj['status'] == 'deleted' and latest_status != 'deleted' or obj['status'] == 'added' and latest_status == 'deleted' or latest_status == 0):
+            db.securities.insert_one(obj)
+          elif obj['year'] == latest_year:
+            if obj['quarter'] > latest_quarter and (obj['status'] == 'deleted' and latest_status != 'deleted' or obj['status'] == 'added' and latest_status == 'deleted'):
+              db.securities.insert_one(obj)
+            elif obj['quarter'] == latest_quarter and (obj['status'] == 'deleted' and latest_status == 'added' or obj['status'] == 'added' and latest_status == 'deleted'):
+              db.securities.insert_one(obj)
