@@ -6,6 +6,7 @@ import re
 from db import db as db_module
 
 db_name = 'filings'
+data_directory = '../../data/13flists/'
 
 db_client = db_module().client
 db = db_client[db_name]
@@ -35,8 +36,6 @@ def cusip_checksum(cusip):
     s = s + v // 10 + v % 10
   return (10 - (s % 10)) % 10
 
-data_directory = '../../data/13flists/'
-
 for ddir in sorted(os.listdir(data_directory)):
   year_re = re.compile('[0-9]{4}');
   if year_re.match(ddir):
@@ -46,13 +45,14 @@ for ddir in sorted(os.listdir(data_directory)):
       csv_path = data_directory+year+'/'+qtr+'/13flist'+year+qtr+'.csv'
       df = pd.read_csv(csv_path, na_values='')
 
+      # progress
       print(f'Working on {year}{qtr} ...')
 
       for idx, row in df.iterrows():
         status = str(row['status']).strip().lower()
         status = 'none' if status != 'deleted' and status != 'added' else status
 
-        # only insert deltas after 2003q4
+        # only insert deltas after 2003q4 (for now)
         if status != 'none' or (int(year) == 2003 and int(qtr[1]) == 4):
           cusip = ''.join(str(row['cusip']).split())
           options = True if str(row['options']).strip() == '*' else False
@@ -60,7 +60,6 @@ for ddir in sorted(os.listdir(data_directory)):
           issuer = str(row['issuer']).strip()
           description = str(row['description']).strip()
 
-          # composite, unique identifier:  year, quarter, cusip9
           obj = {
             'year': int(year),
             'quarter': int(qtr[1]),
@@ -75,20 +74,36 @@ for ddir in sorted(os.listdir(data_directory)):
             'given_checksum': gc,
             'computed_checksum': cusip_checksum(cusip[0:8]),
           }
-          #pprint(obj)
 
           securities_search = db.securities.find({
             'cusip9': obj['cusip9'],
           })
 
-          # if cusip exists and is not deleted, this insertion had better be a 'status':'delete'
-
           # delta checks: is this a valid insertion?
           latest_year = 0
           latest_quarter = 0
           latest_status = 0
+          duplicate = False
 
           for security in securities_search:
+            obj2 = {
+              'year': security['year'],
+              'quarter': security['quarter'],
+              'cusip6': security['cusip6'],
+              'cusip8': security['cusip8'],
+              'cusip9': security['cusip9'],
+              'issue': security['issue'],
+              'has_options': security['has_options'],
+              'issuer': security['issuer'],
+              'description': security['description'],
+              'status': security['status'],
+              'given_checksum': security['given_checksum'],
+              'computed_checksum': security['computed_checksum'],
+            }
+            
+            if obj == obj2:
+              duplicate = True
+              break
             if security['year'] > latest_year:
               latest_year = security['year']
               latest_quarter = security['quarter']
@@ -99,6 +114,10 @@ for ddir in sorted(os.listdir(data_directory)):
                 latest_status = security['status']
               elif security['quarter'] == latest_quarter:
                 latest_status = security['status']
+
+          # do not insert duplicate records
+          if duplicate:
+            continue
           
           if obj['year'] > latest_year and (obj['status'] == 'deleted' and latest_status != 'deleted' or obj['status'] == 'added' and latest_status == 'deleted' or latest_status == 0):
             db.securities.insert_one(obj)
