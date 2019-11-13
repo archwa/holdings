@@ -1,6 +1,6 @@
 #!/bin/sh
 
-YR_START=2004
+YR_START=2003
 YR_CUR=`date +"%Y"`
 QTR_CUR=$(((`date +%-m`-1)/3+1))
 
