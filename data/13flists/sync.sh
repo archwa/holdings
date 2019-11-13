@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 YR_START=1996
 YR_CUR=`date +"%Y"`
