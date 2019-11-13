@@ -28,8 +28,6 @@ def cusip_checksum(cusip):
       v = 37
     elif char == '#':
       v = 38
-    else:
-      exit()
 
     if i & 1:
       v = v * 2
