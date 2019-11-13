@@ -4,8 +4,6 @@ YR_START=2003
 YR_CUR=`date +"%Y"`
 QTR_CUR=$(((`date +%-m`-1)/3+1))
 
-# TODO : check that CUSIP is valid (checksum)
-
 success=true
 
 for I in `seq ${YR_START} ${YR_CUR}`; do
