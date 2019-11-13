@@ -49,29 +49,31 @@ for ddir in os.listdir(data_directory):
       df = pd.read_csv(csv_path, na_values='')
 
       for idx, row in df.iterrows():
-        cusip = ''.join(str(row['cusip']).split())
-        print(cusip)
-        options = True if str(row['options']).strip() == '*' else False
-        gc = int(cusip[8])
-        issuer = str(row['issuer']).strip()
-        description = str(row['description']).strip()
-        status = 'none' if str(row['status']).strip().lower() == 'nan' or str(row['status']).strip().lower() == '' else str(row['status']).strip().lower()
+        status = str(row['status']).strip().lower()
+        status = 'none' if status != 'deleted' and status != 'added' else status
 
-        # composite, unique identifier:  year, quarter, cusip9
-        obj = {
-          'year': int(year),
-          'quarter': int(qtr[1]),
-          'cusip6': cusip[0:6],
-          'cusip8': cusip[0:8],
-          'cusip9': cusip[0:9],
-          'issue': cusip[6:8],
-          'has_options': options,
-          'issuer': issuer,
-          'description': description,
-          'status': status,
-          'given_checksum': gc,
-          'computed_checksum': cusip_checksum(cusip[0:8]),
-        }
-        
-        if status != 'deleted':
+        # only include updates after 2003q4
+        if status != 'none' or (int(year) == 2003 and int(qtr[1]) == 4):
+          cusip = ''.join(str(row['cusip']).split())
+          options = True if str(row['options']).strip() == '*' else False
+          gc = int(cusip[8])
+          issuer = str(row['issuer']).strip()
+          description = str(row['description']).strip()
+
+          # composite, unique identifier:  year, quarter, cusip9
+          obj = {
+            'year': int(year),
+            'quarter': int(qtr[1]),
+            'cusip6': cusip[0:6],
+            'cusip8': cusip[0:8],
+            'cusip9': cusip[0:9],
+            'issue': cusip[6:8],
+            'has_options': options,
+            'issuer': issuer,
+            'description': description,
+            'status': status,
+            'given_checksum': gc,
+            'computed_checksum': cusip_checksum(cusip[0:8]),
+          }
+
           pprint(obj)
