@@ -1,6 +1,6 @@
 import os
 import pymongo
-import db.db as db_module
+from db import db as db_module
 from pprint import pprint
 import requests
 import re
