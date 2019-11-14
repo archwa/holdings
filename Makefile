@@ -17,11 +17,12 @@ run-client-web:
 
 info-db:
 	@printf "[$@] Running script to show existing MongoDB collections ...\n"
-	$(PYTHON) src/server/$@.py
+	$(PYTHON) src/server/info_db.py
 
-update-db:
-	@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
-	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/server/$@.pl
+# long process; run all import scripts after making sure the data is current
+import-holdings:
+	#@printf "[$@] Running SEC 13F filings script with credentials from \`.env\` ...\n"
+	$(PYTHON) src/server/import_holdings.py
 	
 setup:
 	@printf "[$@] Creating Python virtual environment (if none exists) ...\n"

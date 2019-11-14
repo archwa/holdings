@@ -1,7 +1,16 @@
+import os
+import pymongo
+import db.db as db_module
+from pprint import pprint
 import requests
 import re
 
-year_range = [2001, 2019] # inclusive
+db_name = 'filings'
+
+db_client = db_module().client
+db = db_client[db_name]
+
+year_range = [1996, 2019] # inclusive
 quarter_range = [1, 4]    # inclusive
 
 root_dir_re   = re.compile(r'^Cloud HTTP:\s+([^\s]+)$')
@@ -11,15 +20,20 @@ line_entry_re = re.compile('^' + r'\|'.join([r'([^\|]+)']*5) + '$')
 def process_form_13f_hr(data):
   print(data)
 
+# process form with type
 def process_form(form_type, data):
   if form_type == '13F-HR':
     process_form_13f_hr(data)
 
+# process an entry for a form
 def process_entry(entry, root_dir):
-  # TODO : remove trailing / excess whitespace
-  cik, company_name, form_type, date_filed, filename = entry
+  cik = str(entry[0]).strip().zfill(10) # make 10 digit cik
+  company_name = str(entry[1]).strip()
+  form_type = str(entry[2]).strip()
+  date_filed = str(entry[3]).strip()
+  filename = str(entry[4]).strip()
+
   form_url = root_dir + filename
-  cik = cik.zfill(10) # 10 digits to cik
 
   # distinguish 13F 'HR' (holdings report) from 'NT' (notice)
   if form_type[0:6] == '13F-HR':
