@@ -4,7 +4,6 @@ __pycache__
 activate
 data/*
 !data/13flists
-!data/symbols
 *.pdf
 *.tgz
 *.tar.gz
