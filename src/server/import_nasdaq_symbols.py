@@ -2,6 +2,8 @@ from db import db as db_module
 from pprint import pprint
 from datetime import datetime
 from dateutil.parser import parse as parse_date
+from io import StringIO
+import pandas as pd
 import pytz
 import json
 import requests
@@ -12,22 +14,53 @@ db_name = 'filings'
 db_client = db_module().client
 db = db_client[db_name]
 
-sec_ticker_re = re.compile(r'^(.+)\s+([0-9]+)')
+nasdaq_self_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/nasdaqlisted.txt'
+nasdaq_other_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/otherlisted.txt'
 
+market_category_map = {
+  'Q': 'NASDAQ Global Select Market',
+  'G': 'NASDAQ Global Market',
+  'S': 'NASDAQ Capital Market'
+}
 
-sec_ticker_text_data_url = 'https://www.sec.gov/include/ticker.txt'
-sec_company_ticker_json_data_url = 'https://www.sec.gov/files/company_tickers.json'
+financial_status_map = {
+  'D': 'Deficient',
+  'E': 'Delinquent',
+  'Q': 'Bankrupt',
+  'N': 'Normal',
+  'G': 'Deficient and Bankrupt',
+  'H': 'Deficient and Delinquent',
+  'J': 'Delinquent and Bankrupt',
+  'K': 'Deficient, Delinquent, and Bankrupt'
+}
+
+exchange_map = {
+  'A': 'NYSE MKT',
+  'N': 'New York Stock Exchange (NYSE)',
+  'P': 'NYSE ARCA',
+  'Z': 'BATS Global Markets (BATS)',
+  'V': 'Investors\' Exchange, LLC (IEXG)'
+}
+
+def process_nasdaq_self_listed_ticker_csv():
+  # download NASDAQ self-listed tickers CSV file
+  response = requests.get(nasdaq_self_listed_ticker_csv_url)
+  data = response.text
+  data_stream = StringIO(data)
+
+  df = pd.read_csv(data_stream, sep="|")
+  pprint(df)
 
 
 def process_sec_ticker_text():
   # download SEC ticker file
-  response = requests.get(sec_ticker_text_data_url)
+  response = requests.get(sec_ticker_data_url)
   data = response.text
 
   all_lines = data.splitlines()
   no_matches = []
 
-  print('Processing SEC ticker text data ...')
+  print('Processing SEC ticker data ...')
 
   with tqdm(total=len(all_lines)) as pbar:
     for line in iter(all_lines):
@@ -78,7 +111,7 @@ def process_sec_ticker_text():
     for line in no_matches:
       pprint(line)
   else:
-    print('Success! Imported all SEC ticker data.\n')
+    print('Success! Imported all SEC ticker data.')
 
 
 def process_sec_company_ticker_json():
@@ -89,7 +122,7 @@ def process_sec_company_ticker_json():
 
   empty_data = []
 
-  print('Processing SEC company ticker JSON data ...')
+  print('\nProcessing SEC company ticker JSON data')
 
   with tqdm(total=len(data.items())) as pbar:
     for key, entry in data.items():
@@ -158,7 +191,8 @@ def process_sec_company_ticker_json():
     print('Success! Imported all SEC company ticker JSON data.')
 
 
-response = requests.head(sec_ticker_text_data_url)
+'''
+response = requests.head(sec_ticker_data_url)
 last_modified_text = response.headers['last-modified']
 last_modified = parse_date(last_modified_text).replace(tzinfo=pytz.UTC)
 
@@ -201,8 +235,6 @@ if last_modified > db_last_modified:
       'updated_at': { '$type': 'date' },
     },
   })
-else:
-  print('Ignoring SEC ticker text data (already up to date).\n')
 
 response = requests.head(sec_company_ticker_json_data_url)
 last_modified_text = response.headers['last-modified']
@@ -217,5 +249,4 @@ if last_modified > db_last_modified:
       'updated_at': { '$type': 'date' },
     },
   })
-else:
-  print('Ignoring SEC company ticker JSON data (already up to date).\n')
+'''
