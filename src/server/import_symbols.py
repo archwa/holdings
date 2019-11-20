@@ -150,7 +150,7 @@ def process_sec_company_ticker_json():
         empty_data.append(entry)
 
   # sanity check
-  if len(no_matches):
+  if len(empty_data):
     print(f'Some entries provided no data.  See beow:')
     for entry in empty_data:
       pprint(entry)

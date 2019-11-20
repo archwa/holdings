@@ -6,7 +6,7 @@ from io import StringIO
 import pandas as pd
 import pytz
 import json
-import requests
+import urllib.request
 import re
 from tqdm import tqdm
 
@@ -20,7 +20,8 @@ nasdaq_other_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory
 market_category_map = {
   'Q': 'NASDAQ Global Select Market',
   'G': 'NASDAQ Global Market',
-  'S': 'NASDAQ Capital Market'
+  'S': 'NASDAQ Capital Market',
+  '': None
 }
 
 financial_status_map = {
@@ -31,7 +32,8 @@ financial_status_map = {
   'G': 'Deficient and Bankrupt',
   'H': 'Deficient and Delinquent',
   'J': 'Delinquent and Bankrupt',
-  'K': 'Deficient, Delinquent, and Bankrupt'
+  'K': 'Deficient, Delinquent, and Bankrupt',
+  '': None
 }
 
 exchange_map = {
@@ -39,157 +41,139 @@ exchange_map = {
   'N': 'New York Stock Exchange (NYSE)',
   'P': 'NYSE ARCA',
   'Z': 'BATS Global Markets (BATS)',
-  'V': 'Investors\' Exchange, LLC (IEXG)'
+  'V': 'Investors\' Exchange, LLC (IEXG)',
+  '': None
 }
+
+etf_map = {
+  'Y': True,
+  'N': False,
+  '': None
+}
+
+def process_nasdaq_other_listed_ticker_csv():
+  # download NASDAQ self-listed tickers CSV file
+  req = urllib.request.Request(nasdaq_other_listed_ticker_csv_url)
+  with urllib.request.urlopen(req) as response:
+    data = response.read().decode("utf-8")
+    data_stream = StringIO(data)
+
+  print('Processing NASDAQ other-listed ticker data ...')
+  
+  df = pd.read_csv(data_stream, sep="|")
+  df = df.fillna('')
+
+  for index, row in tqdm(df[:-1].iterrows(), total=df[:-1].shape[0]):
+    obj = {
+      'symbol': row['ACT Symbol'],
+      'name': row['Security Name'],
+      'exchange': exchange_map[row['Exchange']],
+      'etf': etf_map[row['ETF']],
+    }
+
+    symbol_search = db.symbols.find_one({ 'symbol': obj['symbol'] })
+
+    if not symbol_search:
+      symbol_query = {
+        '$set': {
+          'symbol': obj['symbol'],
+          'names': [ obj['name'] ],
+          'exchange': obj['exchange'],
+          'is_etf': obj['etf']
+        },
+        '$currentDate': {
+          'created_at': { '$type': 'date' },
+          'updated_at': { '$type': 'date' },
+        },
+      }
+      db.symbols.update_one({ 'symbol': obj['symbol'] }, symbol_query, upsert=True)
+
+    else:
+      names = symbol_search.get('names', [])
+
+      if obj['name'] not in names:
+        names.append(obj['name']) # add new name
+        new_names = sorted(names)
+        update_new_names_query = {
+          '$set': { 
+            'names': new_names,
+            'exchange': obj['exchange'],
+            'is_etf': obj['etf']
+          },
+          '$currentDate': {
+            'updated_at': { '$type': 'date' },
+          },
+        }
+
+        db.symbols.update_one({ 'symbol': obj['symbol'] }, update_new_names_query)
+
+  print('All done!')
+
+
 
 def process_nasdaq_self_listed_ticker_csv():
   # download NASDAQ self-listed tickers CSV file
-  response = requests.get(nasdaq_self_listed_ticker_csv_url)
-  data = response.text
-  data_stream = StringIO(data)
+  req = urllib.request.Request(nasdaq_self_listed_ticker_csv_url)
+  with urllib.request.urlopen(req) as response:
+    data = response.read().decode("utf-8")
+    data_stream = StringIO(data)
 
+  print('Processing NASDAQ self-listed ticker data ...')
+  
   df = pd.read_csv(data_stream, sep="|")
-  pprint(df)
+  df = df.fillna('')
 
+  for index, row in tqdm(df[:-1].iterrows(), total=df[:-1].shape[0]):
+    obj = {
+      'symbol': row['Symbol'],
+      'name': row['Security Name'],
+      'exchange': 'NASDAQ',
+      'market_category': market_category_map[row['Market Category']],
+      'financial_status': financial_status_map[row['Financial Status']],
+      'etf': etf_map[row['ETF']],
+    }
 
-def process_sec_ticker_text():
-  # download SEC ticker file
-  response = requests.get(sec_ticker_data_url)
-  data = response.text
+    symbol_search = db.symbols.find_one({ 'symbol': obj['symbol'] })
 
-  all_lines = data.splitlines()
-  no_matches = []
+    if not symbol_search:
+      symbol_query = {
+        '$set': {
+          'symbol': obj['symbol'],
+          'names': [ obj['name'] ],
+          'exchange': obj['exchange'],
+          'market_category': obj['market_category'],
+          'financial_status': obj['financial_status'],
+          'is_etf': obj['etf']
+        },
+        '$currentDate': {
+          'created_at': { '$type': 'date' },
+          'updated_at': { '$type': 'date' },
+        },
+      }
+      db.symbols.update_one({ 'symbol': obj['symbol'] }, symbol_query, upsert=True)
 
-  print('Processing SEC ticker data ...')
+    else:
+      names = symbol_search.get('names', [])
 
-  with tqdm(total=len(all_lines)) as pbar:
-    for line in iter(all_lines):
-      pbar.update(1)
-      ticker_entry = sec_ticker_re.match(line)
-      
-      if ticker_entry:
-        ticker_name = ticker_entry.group(1).strip().upper()
-        cik = ticker_entry.group(2).zfill(10)
+      if obj['name'] not in names:
+        names.append(obj['name']) # add new name
+        new_names = sorted(names)
+        update_new_names_query = {
+          '$set': { 
+            'names': new_names,
+            'exchange': obj['exchange'],
+            'market_category': obj['market_category'],
+            'financial_status': obj['financial_status'],
+            'is_etf': obj['etf']
+          },
+          '$currentDate': {
+            'updated_at': { '$type': 'date' },
+          },
+        }
 
-        ticker_search = db.symbols.find_one({ 'symbol': ticker_name })
+        db.symbols.update_one({ 'symbol': obj['symbol'] }, update_new_names_query)
 
-        if not ticker_search:
-          symbol_query = {
-            '$set': {
-              'ciks': [ cik ],
-              'symbol': ticker_name,
-            },
-            '$currentDate': {
-              'created_at': { '$type': 'date' },
-              'updated_at': { '$type': 'date' },
-            },
-          }
-          db.symbols.update_one({ 'symbol': ticker_name }, symbol_query, upsert=True)
-
-        else:
-          ciks = ticker_search.get('ciks', [])
-          
-          if cik not in ciks:
-            ciks.append(cik)
-            new_ciks = sorted(ciks)
-            update_new_ciks_query = {
-              '$set': { 'ciks': new_ciks },
-              '$currentDate': {
-                'updated_at': { '$type': 'date' }
-              }
-            }
-          
-            db.symbols.update_one({ 'symbol': ticker_name }, update_new_ciks_query)
-      
-      # otherwise, no match
-      else:
-        no_matches.append(line)
-
-  # sanity check
-  if len(no_matches):
-    print(f'Some lines did not match the search.  See beow:')
-    for line in no_matches:
-      pprint(line)
-  else:
-    print('Success! Imported all SEC ticker data.')
-
-
-def process_sec_company_ticker_json():
-  # download SEC company ticker JSON data
-  response = requests.get(sec_company_ticker_json_data_url)
-  data = response.text
-  data = json.loads(data)
-
-  empty_data = []
-
-  print('\nProcessing SEC company ticker JSON data')
-
-  with tqdm(total=len(data.items())) as pbar:
-    for key, entry in data.items():
-      pbar.update(1)
-      ticker_name = entry['ticker'].strip().upper()
-      cik = str(entry['cik_str']).zfill(10)
-      company_name = entry['title'].strip()
-
-      # validate the above variables ...
-      if ticker_name != '' or company_name != '' or entry['cik_str'] != '':
-        ticker_search = db.symbols.find_one({ 'symbol': ticker_name })
-
-        if not ticker_search:
-          symbol_query = {
-            '$set': {
-              'ciks': [ cik ],
-              'symbol': ticker_name,
-              'names': [ company_name ]
-            },
-            '$currentDate': {
-              'created_at': { '$type': 'date' },
-              'updated_at': { '$type': 'date' },
-            },
-          }
-          
-          db.symbols.update_one({ 'symbol': ticker_name }, symbol_query, upsert=True)
-
-        else:
-          names = ticker_search.get('names', [])
-          ciks = ticker_search.get('ciks', [])
-
-          if company_name not in names:
-            names.append(company_name) # add new name
-            new_names = sorted(names)
-            update_new_names_query = {
-              '$set': { 'names': new_names },
-              '$currentDate': {
-                'updated_at': { '$type': 'date' },
-              },
-            }
-
-            db.symbols.update_one({ 'symbol': ticker_name }, update_new_names_query)
-
-          if cik not in ciks:
-            ciks.append(cik)
-            new_ciks = sorted(ciks)
-            update_new_ciks_query = {
-              '$set': { 'ciks': new_ciks },
-              '$currentDate': {
-                'updated_at': { '$type': 'date' }
-              }
-            }
-          
-            db.symbols.update_one({ 'symbol': ticker_name }, update_new_ciks_query)
-
-      # at least one important variable is empty; including would be pointless
-      else:
-        empty_data.append(entry)
-
-  # sanity check
-  if len(no_matches):
-    print(f'Some entries provided no data.  See beow:')
-    for entry in empty_data:
-      pprint(entry)
-  else:
-    print('Success! Imported all SEC company ticker JSON data.')
-
+  print('All done!')
 
 '''
 response = requests.head(sec_ticker_data_url)
