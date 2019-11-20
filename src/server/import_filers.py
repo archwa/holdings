@@ -1,9 +1,6 @@
-import os
 from db import db as db_module
-import pandas as pd
 from pprint import pprint
-from copy import deepcopy
-import pymongo
+from datetime import datetime
 import requests
 import re
 from tqdm import tqdm
@@ -20,10 +17,8 @@ cik_lookup_data_url = 'https://www.sec.gov/Archives/edgar/cik-lookup-data.txt'
 response = requests.get(cik_lookup_data_url)
 data = response.text
 
-match_count = 0
-no_matches = []
-
 all_lines = data.splitlines()
+no_matches = []
 
 # process each line in the filer data
 with tqdm(total=len(all_lines)) as pbar:
@@ -32,7 +27,6 @@ with tqdm(total=len(all_lines)) as pbar:
     filer_entry = filer_re.match(line)
 
     if filer_entry:
-      match_count += 1
       conformed_name = re.sub(r'\s+', ' ', filer_entry.group(1)).strip()
       cik = re.sub(r'\s+', ' ', filer_entry.group(2)).strip()
 
@@ -44,18 +38,29 @@ with tqdm(total=len(all_lines)) as pbar:
         if conformed_name not in names:
           names.append(conformed_name) # add new name
           new_names = sorted(names)
-          update_new_names_query = { '$set': { 'names': new_names } }
+          update_new_names_query = {
+            '$set': { 'names': new_names },
+            '$currentDate': {
+              'updated_at': { '$type': 'date' }
+            }
+          }
 
           db.filers.update_one({ 'cik': cik }, update_new_names_query)
 
       else:
         # if we can't find the document, create a new one
-        filer = {
-          'cik': cik,
-          'names': [ conformed_name ]
+        filer_query = {
+          '$set': {
+            'cik': cik,
+            'names': [ conformed_name ],
+          },
+          '$currentDate': {
+            'created_at': { '$type': 'date' },
+            'updated_at': { '$type': 'date' },
+          },
         }
 
-        db.filers.insert_one(filer)
+        db.filers.update_one({ 'cik': cik }, filer_query, upsert=True)
 
     # otherwise, no match
     else:
@@ -63,10 +68,9 @@ with tqdm(total=len(all_lines)) as pbar:
 
 
 # sanity check
-if len(all_lines) == match_count:
-  print('Success! Imported all filers.')
-else:
-  print(f'Something\'s not right ... len(all_lines) {len(all_lines)} != match_count {match_count}')
-  print('See below for offending lines:')
+if len(no_matches):
+  print(f'Some lines did not match the search.  See beow:')
   for line in no_matches:
     pprint(line)
+else:
+  print('Success! Imported all filers.')

@@ -1,5 +1,4 @@
 import os
-import pymongo
 from db import db as db_module
 from pprint import pprint
 import requests
@@ -16,9 +15,26 @@ quarter_range = [1, 4]    # inclusive
 root_dir_re   = re.compile(r'^Cloud HTTP:\s+([^\s]+)$')
 line_entry_re = re.compile('^' + r'\|'.join([r'([^\|]+)']*5) + '$')
 
+
+
+
+
+###############################################################################
+
 # process 13f holdings report
 def process_form_13f_hr(data):
+  # step one: orient ourselves
   print(data)
+
+  # step two: act to findings
+  
+
+
+
+
+
+
+###############################################################################
 
 # process form with type
 def process_form(form_type, data):
