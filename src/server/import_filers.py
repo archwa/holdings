@@ -33,19 +33,18 @@ with tqdm(total=len(all_lines)) as pbar:
 
     if filer_entry:
       match_count += 1
-      conformed_name = re.sub(' +', ' ', filer_entry.group(1)).strip()
-      cik = re.sub(' +', ' ', filer_entry.group(2)).strip()
+      conformed_name = re.sub(r'\s+', ' ', filer_entry.group(1)).strip()
+      cik = re.sub(r'\s+', ' ', filer_entry.group(2)).strip()
 
       filer_search = db.filers.find_one({ 'cik': cik })
 
       if filer_search:
-        names = deepcopy(filer_search['names'])
+        names = filer_search['names']
 
         if conformed_name not in names:
           names.append(conformed_name) # add new name
           new_names = sorted(names)
           update_new_names_query = { '$set': { 'names': new_names } }
-          pprint(new_names)
 
           db.filers.update_one({ 'cik': cik }, update_new_names_query)
 
@@ -55,7 +54,6 @@ with tqdm(total=len(all_lines)) as pbar:
           'cik': cik,
           'names': [ conformed_name ]
         }
-        pprint(filer)
 
         db.filers.insert_one(filer)
 
