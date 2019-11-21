@@ -9,7 +9,7 @@ db_name = 'filings'
 db_client = db_module().client
 db = db_client[db_name]
 
-filer_re = re.compile(r'^([^:]+):([0-9]{10}):')
+filer_re = re.compile(r'^(.+):([0-9]{10}):')
 
 cik_lookup_data_url = 'https://www.sec.gov/Archives/edgar/cik-lookup-data.txt'
 
