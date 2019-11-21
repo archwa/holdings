@@ -175,62 +175,6 @@ def process_nasdaq_self_listed_ticker_csv():
 
   print('All done!')
 
-'''
-response = requests.head(sec_ticker_data_url)
-last_modified_text = response.headers['last-modified']
-last_modified = parse_date(last_modified_text).replace(tzinfo=pytz.UTC)
-
-# get metadata (data sources last updated information)
-metadata = db.metadata.find_one({ 'data_sources': { '$exists': True }})
-if not metadata:
-  dummy_date = datetime(1970, 1, 1).replace(tzinfo=pytz.UTC)
-  metadata = {
-    '$set': {
-      'data_sources': {
-        'sec_ticker_text': {
-          'lastModified': dummy_date
-        },
-        'sec_company_ticker_json': {
-          'lastModified': dummy_date
-        },
-        'nasdaq_self_listed_ticker_csv': {
-          'lastModified': dummy_date
-        },
-        'nasdaq_other_listed_ticker_csv': {
-          'lastModified': dummy_date
-        },
-      }
-    },
-    '$currentDate': {
-      'created_at': { '$type': 'date' },
-      'updated_at': { '$type': 'date' },
-    },
-  }
-  db.metadata.update_one({}, metadata, upsert=True)
-  metadata = db.metadata.find_one({ 'data_sources': { '$exists': True }})
-
-db_last_modified = metadata['data_sources']['sec_ticker_text']['lastModified'].replace(tzinfo=pytz.UTC)
-
-if last_modified > db_last_modified:
-  process_sec_ticker_text()
-  db.metadata.update_one({ 'data_sources': { '$exists': True }}, {
-    '$set': { 'data_sources.sec_ticker_text.lastModified': last_modified },
-    '$currentDate': {
-      'updated_at': { '$type': 'date' },
-    },
-  })
-
-response = requests.head(sec_company_ticker_json_data_url)
-last_modified_text = response.headers['last-modified']
-last_modified = parse_date(last_modified_text).replace(tzinfo=pytz.UTC)
-db_last_modified = metadata['data_sources']['sec_company_ticker_json']['lastModified'].replace(tzinfo=pytz.UTC)
-
-if last_modified > db_last_modified:
-  process_sec_company_ticker_json()
-  db.metadata.update_one({ 'data_sources': { '$exists': True }}, {
-    '$set': { 'data_sources.sec_company_ticker_json.lastModified': last_modified },
-    '$currentDate': {
-      'updated_at': { '$type': 'date' },
-    },
-  })
-'''
+# process the data
+process_nasdaq_self_listed_ticker_csv()
+process_nasdaq_other_listed_ticker_csv()
