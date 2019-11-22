@@ -304,7 +304,9 @@ for cik, cusip_object in tqdm(MASTER.items(), position=0):
     periods_held = []
 
     for year, quarter_object in year_object.items():
+      year = int(year)
       for quarter, data in quarter_object.items():
+        quarter = int(quarter)
 
         if not len(periods_held):
           periods_held = [{
