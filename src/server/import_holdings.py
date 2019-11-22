@@ -2,6 +2,7 @@ import sys
 import pymongo
 from db import db as db_module
 from pprint import pprint
+from datetime import datetime
 from dateutil.parser import parse
 import pytz
 import requests
@@ -16,7 +17,7 @@ db_name = 'filings'
 db_client = db_module().client
 db = db_client[db_name]
 
-year_range = [2004, 2005] # inclusive
+year_range = [2004, 2004] # inclusive
 quarter_range = [1, 4]    # inclusive
 
 root_dir_re   = re.compile(r'^Cloud HTTP:\s+([^\s]+)$')
@@ -121,13 +122,12 @@ def process_form_13f_hr(options):
 
     for cusip in cusip_list:
       if not MASTER.get(f'{cik}.{cusip}', None):
-        MASTER[cik]['filer_name'] = filer_name
         MASTER[cik][cusip] = {
           year: {
             quarter: {
-              'form_id': file_name,
+              #'form_id': file_name,
               'filer_name': filer_name,
-              'date_filed': date_filed,
+              #'date_filed': date_filed,
             }
           }
         }
@@ -136,18 +136,18 @@ def process_form_13f_hr(options):
         if not MASTER.get(f'{cik}.{cusip}.{year}', None):
           MASTER[cik][cusip][year] = {
             quarter: {
-              'form_id': file_name,
+              #'form_id': file_name,
               'filer_name': filer_name,
-              'date_filed': date_filed,
+              #'date_filed': date_filed,
             }
           }
 
         else:
           if not MASTER.get(f'{cik}.{cusip}.{year}.{quarter}', None):
             MASTER[cik][cusip][year][quarter] = {
-              'form_id': file_name,
+              #'form_id': file_name,
               'filer_name': filer_name,
-              'date_filed': date_filed,
+              #'date_filed': date_filed,
             }
         
 ###############################################################################
@@ -204,6 +204,57 @@ def process_entry(entry, root_dir):
     # process the form
     process_form('13F-HR', options)
 
+
+def quarters_are_adjacent(q1, q2):
+  year_dist = abs(q1['year'] - q2['year']) 
+  quarter_dist = abs(q1['quarter'] - q2['quarter']) 
+  
+  if year_dist > 1:
+    return False
+
+  elif year_dist:
+    if not quarter_dist == 3:
+      return False
+
+    case1 = q1['year'] > q2['year'] and q1['quarter'] < q2['quarter']
+    case2 = q1['year'] < q2['year'] and q1['quarter'] > q2['quarter']
+
+    return case1 or case2
+    
+  else:
+    return not quarter_dist > 1
+
+def pick_quarter(extreme, q1, q2):
+  if extreme == 'min':
+    year_diff = q2['year'] - q1['year']
+    quarter_diff = q2['quarter'] - q1['quarter']
+
+  elif extreme == 'max':
+    year_diff = q1['year'] - q2['year']
+    quarter_diff = q1['quarter'] - q2['quarter']
+
+  if year_diff > 0:
+    return q1
+
+  elif year_diff < 0:
+    return q2
+    
+  else:
+    if quarter_diff > 0:
+      return q1
+
+    return q2
+
+def calc_period_diff(start, end):
+  start = pick_quarter('min', q1, q2)
+  end = pick_quarter('max', q1, q2)
+
+  year_diff = end['year'] - start['year']
+  quarter_diff = end['quarter'] - start['quarter'] + 1
+  return 4*max(0, year_diff) + quarter_diff
+
+print('Gathering all holding data ...', file=sys.stderr)
+
 # for each year and quarter, process master indices
 for year in range(year_range[0], year_range[1] + 1):
   for quarter in range(quarter_range[0], quarter_range[1] + 1):
@@ -242,58 +293,19 @@ for year in range(year_range[0], year_range[1] + 1):
 
         entry = line_entry.group(1, 2, 3, 4, 5)
         process_entry(entry, root_dir)
-
-def quarters_are_adjacent(q1, q2):
-  year_dist = abs(q1['year'] - q2['year']) 
-  quarter_dist = abs(q1['quarter'] - q2['quarter']) 
-  
-  if year_dist > 1:
-    return False
-
-  elif year_dist:
-    if not quarter_dist == 3:
-      return False
-
-    case1 = q1['year'] > q2['year'] and q1['quarter'] < q2['quarter']
-    case2 = q1['year'] < q2['year'] and q1['quarter'] > q2['quarter']
-
-    return case1 or case2
-    
-  else:
-    return not quarter_dist > 1
-
-def pick_quarter(extreme, q1, q2):
-  if extreme == 'min':
-    year_diff = q1['year'] - q2['year']
-    quarter_diff = q1['quarter'] - q2['quarter']
-
-  elif extreme == 'max':
-    year_diff = q2['year'] - q1['year']
-    quarter_diff = q2['quarter'] - q1['quarter']
-    
-
-  if year_diff > 0:
-    return q1
-
-  elif year_diff < 0:
-    return q2
-    
-  else:
-    if quarter_diff > 0:
-      return q1
-
-    return q2
   
 
 #####################################################################
 
+print('Processing all holding data for upload ...')
 # process MASTER (has all data in it)
-for cik, cusip_object in MASTER:
-  for cusip, year_object in cusip_object:
+for cik, cusip_object in tqdm(MASTER.items(), position=0):
+  for cusip, year_object in tqdm(cusip_object.items(), position=1):
     periods_held = []
 
-    for year, quarter_object in year_object:
-      for quarter, data in quarter_object:
+    for year, quarter_object in year_object.items():
+      for quarter, data in quarter_object.items():
+
         if not len(periods_held):
           periods_held = [{
             'start': {
@@ -304,9 +316,7 @@ for cik, cusip_object in MASTER:
               'year': year,
               'quarter': quarter,
             },
-            'form_ids': set(data['file_name']),
-            'filer_names': set(data['filer_name']),
-            'dates_filed': set(data['date_filed']),
+            'filer_names': { data['filer_name'] },
           }]
 
         else:
@@ -317,46 +327,35 @@ for cik, cusip_object in MASTER:
 
           inserted = False
 
-          for i in len(periods_held):
-            # store the earlier if adjacent
+          for i in range(len(periods_held)):
             start = periods_held[i]['start']
             end = periods_held[i]['end']
 
-            if quarters_are_adjacent(start, cur_qtr):
+            if quarters_are_adjacent(start, cur_qtr) or quarters_are_adjacent(end, cur_qtr):
               periods_held[i]['start'] = pick_quarter('min', start, cur_qtr)
-              periods_held[i]['form_ids'] = union(periods_held[i]['form_ids'], set(data['file_name']))
-              periods_held[i]['filer_names'] = union(periods_held[i]['filer_names'], set(data['filer_name']))
-              periods_held[i]['dates_filed'] = union(periods_held[i]['dates_filed'], set(data['date_filed']))
-              inserted = True
-              break
-
-            elif quarters_are_adjacent(end, cur_qtr):
               periods_held[i]['end'] = pick_quarter('max', end, cur_qtr)
-              periods_held[i]['form_ids'] = union(periods_held[i]['form_ids'], set(data['file_name']))
-              periods_held[i]['filer_names'] = union(periods_held[i]['filer_names'], set(data['filer_name']))
-              periods_held[i]['dates_filed'] = union(periods_held[i]['dates_filed'], set(data['date_filed']))
+              periods_held[i]['filer_names'] = set.union(periods_held[i]['filer_names'], { data['filer_name'] })
               inserted = True
               break
           
           if not inserted:
             periods_held.append({
-            'start': {
-              'year': year,
-              'quarter': quarter,
-            },
-            'end': {
-              'year': year,
-              'quarter': quarter,
-            },
-            'form_ids': set(data['file_name']),
-            'filer_names': set(data['filer_name']),
-            'dates_filed': set(data['date_filed']),
-          })
+              'start': {
+                'year': year,
+                'quarter': quarter,
+              },
+              'end': {
+                'year': year,
+                'quarter': quarter,
+              },
+              'filer_names': { data['filer_name'] },
+            })
+            inserted = True
+
+    docs = []
               
     for period in periods_held:
-      year_diff = period['end']['year'] - period['start']['year']
-      quarter_diff = period['end']['quarter'] - period['start']['quarter'] + 1
-      ownership_length = 4*max(0, year_diff) + quarter_diff + 1
+      ownership_length = calc_period_diff(period['start'], period['end'])
 
       obj = {
         'cik': cik,
@@ -369,9 +368,18 @@ for cik, cusip_object in MASTER:
         'start': period['start'],
         'end': period['end'],
         'ownership_length': ownership_length,
-        'form_ids': list(period['form_ids']),
         'filer_names': list(period['filer_names']),
-        'dates_filed': list(period['dates_filed']),
+        'created_at': datetime.utcnow(),
+        'updated_at': datetime.utcnow(),
       }
 
-      pprint(obj)
+      docs.append(obj)
+
+  pprint(docs)
+
+  print('Uploading holdings for CIK {cik} ...', file=sys.stderr)
+  # upload docs per cik
+  try:
+    db.holdings.insert_many(docs, ordered=False)
+  except pymongo.errors.BulkWriteError as bwe:
+    pprint(bwe.details, stream=sys.stderr)
