@@ -382,6 +382,7 @@ for cik, cusip_object in tqdm(MASTER.items(), position=0):
   print(f'Uploading holdings for CIK {cik} ...', file=sys.stderr)
   # upload docs per cik
   try:
-    db.holdings.insert_many(docs, ordered=False)
+    if len(docs):
+      db.holdings.insert_many(docs, ordered=False)
   except pymongo.errors.BulkWriteError as bwe:
     pprint(bwe.details, stream=sys.stderr)
