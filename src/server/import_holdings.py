@@ -245,7 +245,7 @@ def pick_quarter(extreme, q1, q2):
 
     return q2
 
-def calc_period_diff(start, end):
+def calc_period_diff(q1, q2):
   start = pick_quarter('min', q1, q2)
   end = pick_quarter('max', q1, q2)
 
