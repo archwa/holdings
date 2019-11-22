@@ -377,7 +377,7 @@ for cik, cusip_object in tqdm(MASTER.items(), position=0):
 
   pprint(docs)
 
-  print('Uploading holdings for CIK {cik} ...', file=sys.stderr)
+  print(f'Uploading holdings for CIK {cik} ...', file=sys.stderr)
   # upload docs per cik
   try:
     db.holdings.insert_many(docs, ordered=False)
