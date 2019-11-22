@@ -300,6 +300,8 @@ for year in range(year_range[0], year_range[1] + 1):
 print('Processing all holding data for upload ...')
 # process MASTER (has all data in it)
 for cik, cusip_object in tqdm(MASTER.items(), position=0):
+  docs = []
+
   for cusip, year_object in tqdm(cusip_object.items(), position=1):
     periods_held = []
 
@@ -353,8 +355,6 @@ for cik, cusip_object in tqdm(MASTER.items(), position=0):
               'filer_names': { data['filer_name'] },
             })
             inserted = True
-
-    docs = []
               
     for period in periods_held:
       ownership_length = calc_period_diff(period['start'], period['end'])
