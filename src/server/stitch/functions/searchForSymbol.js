@@ -26,6 +26,14 @@ exports = function(q){
           : context.functions.execute("searchForFiler", `"${name}"`);
       const issuerSearch = context.functions.execute("searchForIssuer", `"${name}"`);
       
+      return Promise.all([filerSearch, issuerSearch, symbol, name]);
+    })
+    .then(res => {
+      const filerSearch = res[0];
+      const issuerSearch = res[1];
+      const symbol = res[2];
+      const name = res[3];
+      
       const preHoldingsView = filerSearch.length?
             filerSearch.map(filer => filer.data && filer.data.count? filer :null).filter(filer => filer !== null)
           : (!filerSearch.data || filerSearch.data.count !== 1? null :filerSearch.data.results);
