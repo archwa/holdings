@@ -65,7 +65,7 @@ def process_nasdaq_other_listed_ticker_csv():
 
   for index, row in tqdm(df[:-1].iterrows(), total=df[:-1].shape[0]):
     obj = {
-      'symbol': row['ACT Symbol'],
+      'symbol': row['ACT Symbol'].strip().upper(),
       'name': row['Security Name'],
       'exchange': exchange_map[row['Exchange']],
       'etf': etf_map[row['ETF']],
@@ -125,7 +125,7 @@ def process_nasdaq_self_listed_ticker_csv():
 
   for index, row in tqdm(df[:-1].iterrows(), total=df[:-1].shape[0]):
     obj = {
-      'symbol': row['Symbol'],
+      'symbol': row['Symbol'].strip().upper(),
       'name': row['Security Name'],
       'exchange': 'NASDAQ',
       'market_category': market_category_map[row['Market Category']],

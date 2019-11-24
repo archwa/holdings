@@ -15,6 +15,9 @@ run-client-web:
 	@printf "[$@] Running client web app ...\n"
 	cd src/client/web && npm start
 
+update-db:
+	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/server/$@.pl
+
 info-db:
 	@printf "[$@] Running script to show existing MongoDB collections ...\n"
 	$(PYTHON) src/server/info_db.py

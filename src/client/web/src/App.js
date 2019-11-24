@@ -4,7 +4,7 @@ import './App.css';
 // need this for the Stitch UI
 import { StitchComponents } from './stitch';
 
-import Logo from './media/assets/images/gghc.png';
+//import Logo from './media/assets/images/gghc.png';
 
 class App extends React.Component {
   constructor(props) {

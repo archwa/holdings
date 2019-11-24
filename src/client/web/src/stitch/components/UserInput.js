@@ -36,9 +36,11 @@ export class UserInput extends React.Component {
 
     switch(name) {
       case 'fund':
-        this.stitch.callFunction('searchForFund', [cleanInput])
+        this.stitch.callFunction('searchForCompany', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+        })
+          /*
           // TODO : check status of result
           const cik = _.get(searchResult, 'data.cik', null);
 
@@ -62,16 +64,18 @@ export class UserInput extends React.Component {
         .then(res => {
           console.log(res);
           return this.props.handleSubmission(res);
-        })
+        })*/
         .catch(err => {
           console.log(err);
         });
         break;
 
       case 'ticker':
-        this.stitch.callFunction('searchForCompany', [cleanInput])
+        this.stitch.callFunction('searchForSymbol', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+        })
+          /*
           // TODO : check status of result
           const cusip = _.get(searchResult, 'data.cusip', null);
           
@@ -89,7 +93,7 @@ export class UserInput extends React.Component {
         .then(res => {
           console.log(res);
           return this.props.handleSubmission(res);
-        })
+        })*/
         .catch(err => {
           console.log(err);
         });
@@ -117,7 +121,7 @@ export class UserInput extends React.Component {
         <Input
           disabled={ this.state.loading }
           error={ this.state.error }
-          placeholder="Search ..."
+          placeholder="Search by ..."
           style={ styles.input }
           value={ this.state.inputValue }
           onChange={ this._handleInputChange }
@@ -127,13 +131,13 @@ export class UserInput extends React.Component {
             disabled={ this.state.loading }
             onClick={ () => this._handleClick('fund') }
           >
-            Fund
+            Company
           </Button>
           <Button
             disabled={ this.state.loading }
             onClick={ () => this._handleClick('ticker') }
           >
-            Ticker
+            Symbol
           </Button>
         </ButtonGroup>
       </div>

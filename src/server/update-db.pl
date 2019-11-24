@@ -5,19 +5,18 @@ use MongoDB;
 
 # create a client
 my $client = MongoDB::MongoClient->new(
-  host => $ENV{'MONGODB_PROTOCOL'} . '://' . $ENV{'MONGODB_HOST'},
-  username => $ENV{'MONGODB_USER'},
-  password => $ENV{'MONGODB_PASS'},
+  host => 'mongodb+srv://cluster0-gga6t.mongodb.net/test?retryWrites=true&w=majority',
+  username => 'scriptuser',
+  password => 'Scdl1nR6Q9IK2DMJ',
 );
 
 # connection string
-my $db = $client->get_database('test');
+my $db = $client->get_database('filings');
 
 my $colls = $db->list_collections();
 # print Dumper $colls;
-my $coll_periods = $db->get_collection('periods');
-my $coll_funds = $db->get_collection('funds');
-my $coll_companies = $db->get_collection('companies');
+my $coll_periods = $db->get_collection('holdings');
+my $coll_funds = $db->get_collection('filers');
  
 # quarters mappings
 my $quarters = {
@@ -28,7 +27,7 @@ my $quarters = {
 };
 
 # create an array of all quarters of format "YYYYqQ"
-# YYYY in { 2001 .. 2018 }
+# YYYY in { 2001 .. 2019 }
 # Q    in { 1, 2, 3, 4 }
 my @all_periods = ();
 for (my $y = 2001;  $y <= 2019;  $y++) {
@@ -56,6 +55,7 @@ sub parse_13f {
       $issuer = $1;
     } elsif (/<cusip>([^<]+)/) {
       my $cusip = $1;
+      $cusip .= '0' while 9 > length $cusip;
 #      print "   cusip $cusip\n";
       $data->{$cusip}->{$period} = 1;
       $companies->{$cusip}->{'issuer'} = $issuer;
@@ -63,6 +63,7 @@ sub parse_13f {
       $text = 1;
     } elsif ($text && /.+COM\s+([^\s]{9})/) {
       my $cusip = $1;
+      $cusip .= '0' while 9 > length $cusip;
 #      print "   cusip from text $cusip\n";
       $data->{$cusip}->{$period} = 1;
       $companies->{$cusip}->{'issuer'} = $issuer;
@@ -126,10 +127,10 @@ sub get_13f_list {
       my $p = $_;
       $p =~ s/,$//;
       my @ps = split (/,/, $p);
-      my $json = "{ cik: \'$cik\', cusip: \'$c\', quarters: " . (1+$#ps) . ", from: \'" . $ps[0] . "\', to: \'" . $ps[$#ps] . "\'}";
-      print "Trying to insert $json\n";
-      $coll_periods->insert_one ({ cik => $cik, cusip => $c, quarters => (1+$#ps), from => $ps[0], to => $ps[$#ps] });
-      $coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->{'issuer'} });
+      my $json = "{ cik: \"" . sprintf('%010d', int($cik)) . "\", cusip6: \"" . substr(uc($c), 0, 6) . "\", cusip9: \"" . uc($c) . "\", ownership_length: " . (1+$#ps) . ", from: { year: " . substr ($ps[0], 0, 4) . ", quarter: " . substr ($ps[0], 5, 1) . " }, to: { year: " . substr ($ps[$#ps], 0, 4) . ", quarter: " . substr ($ps[$#ps], 5, 1) . " } }";
+      print "PERIODS: Trying to insert $json\n";
+      $coll_periods->insert_one ({ cik => sprintf('%010d', int($cik)), cusip6 => substr(uc($c), 0, 6), cusip9 => uc($c), ownership_length => (1+$#ps), from => { year => int(substr ($ps[0], 0, 4)), quarter => int(substr ($ps[0], 5, 1))}, to => { year => int(substr ($ps[$#ps], 0, 4)), quarter => int(substr ($ps[$#ps], 5, 1)) } });
+      #$coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->{'issuer'} });
     }
   } 
 }
@@ -137,9 +138,9 @@ sub get_13f_list {
 sub add_cik_mapping {
   my ($cik, $fund) = @_;
 
-  my $json = "{ cik: \'$cik\', name: \'$fund\' }";
-  print "Trying to insert $json\n";
-  $coll_funds->insert_one ({ cik => $cik, name => $fund });
+  my $json = "{ cik: \"" . sprintf('%010d', int($cik)) . "\", name: \"$fund\" }";
+  print "FUNDS: Trying to insert $json\n";
+  $coll_funds->insert_one ({ cik => sprintf('%010d', int($cik)), name => $fund });
 }
 
 #my $entries = $coll_periods->find;
@@ -153,14 +154,14 @@ print "Creating \"data/\" directory if none exists ...";
 
 while (<>) {
   chomp;
-  if (/13F/ && !(/bank|corp/i) && /\s([0-9]{7})\s/) {
-    if (/^(13[\-\/0-9A-Z]+)\s+([A-Za-z0-9\s\,\-\.]+)([0-9]{7})/) {
-      my ($fund, $cik) = ($2, $3);
+  if (/13F-HR/ && !(/bank|corp/i) && /\s([0-9]{7})\s/) {
+    if (/^13F-HR\s+([A-Za-z0-9\s\,\-\.]+)\s([0-9]+)\s/) {
+      my ($fund, $cik) = ($1, $2);
       $fund =~ s/\s+/ /g;
       $fund =~ s/\s$//;
 
-      print "CIK $cik\n";
-      print "{$cik => \"$fund\"}\n";
+      #print "CIK " . sprintf('%010d', int($cik)) . " ";
+      #print "{$cik => \"$fund\"}\n";
       
       # add a cik to fund name mapping to the funds collection
       add_cik_mapping ($cik, $fund);
