@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'lodash';
+//import _ from 'lodash';
 
 import { StitchController } from '../';
 import { Input, Button, ButtonGroup } from '@material-ui/core';
@@ -30,15 +30,18 @@ export class UserInput extends React.Component {
     const cleanInput = this.state.inputValue;
 
     // TODO : add support for the checkbox (choosing the current holders / positions only)
-    const options = {
+    /*const options = {
       currentOnly: false
-    };
+    };*/
 
     switch(name) {
-      case 'fund':
+      case 'company':
         this.stitch.callFunction('searchForCompany', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+          return {
+            'companySearchResult': searchResult
+          };
         })
           /*
           // TODO : check status of result
@@ -70,10 +73,13 @@ export class UserInput extends React.Component {
         });
         break;
 
-      case 'ticker':
+      case 'symbol':
         this.stitch.callFunction('searchForSymbol', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+          return {
+            'symbolSearchResult': searchResult
+          };
         })
           /*
           // TODO : check status of result
@@ -129,13 +135,13 @@ export class UserInput extends React.Component {
         <ButtonGroup>
           <Button
             disabled={ this.state.loading }
-            onClick={ () => this._handleClick('fund') }
+            onClick={ () => this._handleClick('company') }
           >
             Company
           </Button>
           <Button
             disabled={ this.state.loading }
-            onClick={ () => this._handleClick('ticker') }
+            onClick={ () => this._handleClick('symbol') }
           >
             Symbol
           </Button>

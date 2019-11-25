@@ -20,8 +20,6 @@ exports = function(q){
           filerSearch,
           issuerSearch
         },
-        filerSearch,
-        issuerSearch
       };
       
       return result;

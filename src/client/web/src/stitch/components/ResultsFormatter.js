@@ -31,8 +31,8 @@ export class ResultsFormatter extends React.Component {
     return (
       <div style={ styles.container }>
         {
-          !_.get(results, 'searchForFund.status', -1)?
-            <>Showing results for fund <strong><code>"{ _.get(results, 'searchForFund.data.name', '') }" (CIK : { _.get(results, 'searchForFund.data.cik', '') })</code></strong></>
+          !_.get(results, 'companySearchResult', -1)?
+            <>Showing results for fund <strong><code>"{ _.get(results, 'companySearchResult.data.filerSearch.data.count', '') }" (CIK : { _.get(results, 'companySearchResult.data.filerSearch.data.count', '') })</code></strong></>
           :null
         }
 
@@ -53,18 +53,18 @@ export class ResultsFormatter extends React.Component {
         
         {
           // fund positions information
-          !_.get(results, 'getPositionsForFund.status', -1)?
+          !_.get(results, 'companySearchResult.status', -1)?
             <ResultsGetPositionsForFund
-              results={ results.getPositionsForFund }
+              results={ results.companySearchResult }
             />
           :null
         }
         
         {
           // company holders information
-          !_.get(results, 'getHoldersForTicker.status', -1)?
+          !_.get(results, 'symbolSearchResult.status', -1)?
             <ResultsGetHoldersForTicker
-              results={ results.getHoldersForTicker }
+              results={ results.symbolSearchResult }
             />
           :null
         }

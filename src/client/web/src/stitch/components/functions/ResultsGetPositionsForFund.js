@@ -16,8 +16,8 @@ export class ResultsGetPositionsForFund extends React.Component {
     this.state = {
       column: null,
       direction: null,
-      data: this.props.results.data,
-      rawResults: this.props.results,
+      data: this.props.results.data.filerSearch.data.results.data.holdings,
+      rawResults: this.props.results.data.filerSearch.data.results.data.holdings,
     };
   }
 
@@ -84,13 +84,13 @@ export class ResultsGetPositionsForFund extends React.Component {
           </TableHead>
           <TableBody>
             {
-              _.map(data, ({ name, cusip, from, to, quarters }, idx) => (
-                  <TableRow key={ _.join([cusip, '-', idx], '') }>
-                    <TableCell><code>{ name }</code></TableCell>
-                    <TableCell><code>{ cusip }</code></TableCell>
-                    <TableCell><code>{ from }</code></TableCell>
-                    <TableCell><code>{ to }</code></TableCell>
-                    <TableCell><code>{ quarters }</code></TableCell>
+              _.map(data, ({ names, cusip6, from, to, ownership_length }, idx) => (
+                  <TableRow key={ _.join([cusip6, '-', idx], '') }>
+                    <TableCell><code>{ names[0] }</code></TableCell>
+                    <TableCell><code>{ cusip6 }</code></TableCell>
+                    <TableCell><code>{ from.year }q{ from.quarter }</code></TableCell>
+                    <TableCell><code>{ to.year }q{ to.quarter }</code></TableCell>
+                    <TableCell><code>{ ownership_length}</code></TableCell>
                   </TableRow>
               ))
             }
