@@ -24,7 +24,7 @@ export class StitchController {
       return 0;
     }
     catch(err) {
-      console.log(err);
+      console.error(err);
       return err;
     }
   }
