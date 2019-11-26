@@ -47,7 +47,8 @@ export class HoldingsView extends React.Component {
         'page': 0,
         'rowsPerPage': 10
       },
-      'currentOnly': false
+      'currentOnly': false,
+      'tableDense': false,
     };
   }
 
@@ -90,10 +91,18 @@ export class HoldingsView extends React.Component {
     }
   }
 
-  _handleChange(event) {
-    this.setState({
-      'currentOnly': event.target.checked
-    });  
+  _handleChange(event, type) {
+    if(type === 'current_only') {
+      this.setState({
+        'currentOnly': event.target.checked
+      });  
+    }
+
+    if(type === 'table_density') {
+      this.setState({
+        'tableDense': event.target.checked
+      });  
+    }
   }
 
   _getHoldings(cik) {
@@ -300,6 +309,7 @@ export class HoldingsView extends React.Component {
     }
 
     const filer_name = _.get(this.state, 'filer_names.0', null);
+    const tableDense = this.state.tableDense;
     
     return (
       <>
@@ -315,13 +325,20 @@ export class HoldingsView extends React.Component {
           <div>
           Show current holdings only <Checkbox
             checked={currentOnly}
-            onChange={this._handleChange}
+            onChange={(event) => this._handleChange(event, 'current_only')}
+            color="primary"
+          /></div>
+          <div>
+          Dense table padding
+          <Checkbox
+            checked={tableDense}
+            onChange={(event) => this._handleChange(event, 'table_density')}
             color="primary"
           /></div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
-            <Table stickyHeader aria-label="sticky table">
+            <Table size={ tableDense? 'small' :'medium' } stickyHeader aria-label="sticky table">
               <TableHead>
                 <TableRow>
                   {columns.map(column => (
