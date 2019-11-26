@@ -232,7 +232,7 @@ export class SearchResults extends React.Component {
         </> :null}
       { (loading && (companyQuery || symbolQuery))? <><div style={{ minHeight: '30vh' }}></div>{ `One moment please ...` }</> :null}
       { (!_.isEmpty(companyResults) && !loading)?
-      <div style={{ textAlign: 'left', fontSize: '16pt' }}>
+      <div style={{ textAlign: 'left', margin: '10px' }}>
         <h2>Company Results</h2>
         <ul>
           { 
@@ -261,7 +261,7 @@ export class SearchResults extends React.Component {
       </div>
       :null }
       { (!_.isEmpty(symbolResults) && !loading)?
-      <div style={{ textAlign: 'left', fontSize: '16pt' }}>
+      <div style={{ textAlign: 'left', margin: '10px' }}>
         <h2>Symbol Results</h2>
         <ul>
           { (() => {
