@@ -108,7 +108,7 @@ export class Search extends React.Component {
     const location = this.state.redirect.location;
 
     return (<div style={ styles.container }>
-
+      <form onSubmit={ this._handleCompanySearch }>
       { redirect? <Redirect to={ location } /> :null }
       <TextField
         onChange={this._handleChange}
@@ -125,6 +125,7 @@ export class Search extends React.Component {
           Symbol
         </ColorButton>
       </ButtonGroup>
+      </form>
     </div>);
   }
 
