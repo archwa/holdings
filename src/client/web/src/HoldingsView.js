@@ -240,14 +240,14 @@ export class HoldingsView extends React.Component {
         <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
           <h1>{ filer_name }</h1>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'right', margin: '10px' }}>
           <div><strong>Average length of ownership</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
           <div>
-          <Checkbox
+          Show current holders only <Checkbox
             checked={currentOnly}
             onChange={this._handleChange}
             color="primary"
-          /> Show current holdings only</div>
+          /></div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
