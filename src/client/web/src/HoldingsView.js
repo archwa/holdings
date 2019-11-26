@@ -313,7 +313,7 @@ export class HoldingsView extends React.Component {
         <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'right', margin: '10px' }}>
           <div><strong>Average length of ownership</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
           <div>
-          Show current holders only <Checkbox
+          Show current holdings only <Checkbox
             checked={currentOnly}
             onChange={this._handleChange}
             color="primary"
