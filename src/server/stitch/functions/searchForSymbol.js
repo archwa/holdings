@@ -7,14 +7,15 @@ exports = function(q){
   return symbols.find({ symbol: symbolString }).toArray()
     .then(resSymbols => {
       if(!resSymbols.length) {
-        return {
+        return ['no symbols', {
           query: {
             q: symbolString,
             type: "symbol"
           },
           status: 0,
-          message: `No symbols found.`
-        };
+          message: `No symbols found.`,
+          data: 0
+        }];
       }
       
       const symbol = resSymbols[0];
@@ -29,6 +30,10 @@ exports = function(q){
       return Promise.all([filerSearch, issuerSearch, symbol, name]);
     })
     .then(res => {
+      if(res[0] === 'no symbols') {
+        return res[1];
+      }
+      
       const filerSearch = res[0];
       const issuerSearch = res[1];
       const symbol = res[2];

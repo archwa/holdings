@@ -56,12 +56,10 @@ export class SearchResults extends React.Component {
     // clear old searches
     if(companySearch !== oldCompanySearch) {
       this.setState({ 'companyQuery': companySearch, 'companyResults': null });
-      console.log('new company query');
     }
 
     if(symbolSearch !== oldSymbolSearch) {
       this.setState({ 'symbolQuery': symbolSearch, 'symbolResults': null });
-      console.log('new symbol query');
     }
 
 
@@ -151,16 +149,54 @@ export class SearchResults extends React.Component {
         const companyResults = _.merge(holders, filers);
 
         console.log(res);
-        this.setState({ loading: false, companyResults: companyResults });
+        this.setState({ loading: false, companyResults });
+      })
+      .catch(err => {
+        console.error(err);
+        this.setState({ loading: false });
       });
   }
 
   _searchSymbol(q) {
     this.setState({ loading: true });
+    console.log(q);
     this.stitch.callFunction('searchForSymbol', [ q ])
       .then(res => {
         console.log(res);
-        this.setState({ loading: false, symbolResults: q });
+        // no results
+        if(!res.status && !res.data) {
+          this.setState({ loading: false, symbolResults: null });
+        }
+
+        else {
+          const data = _.get(res, 'data', null);
+          const symbolName = _.get(data, 'symbol.symbol', null);
+          const holdersView = _.get(data, 'holdersView', null);
+          const holdingsView = _.get(data, 'holdingsView', null);
+          const holdings = holdingsView? {
+            'name': _.get(holdingsView, 'data.filer_names.0', null),
+            'cik': _.get(holdingsView, 'data.filer_cik', null),
+          } :null;
+          const holders = holdersView? {
+            'name': _.get(holdersView, 'data.issuer_names.0', null),
+            'cusip6': _.get(holdersView, 'data.issuer_cusip6', null),
+          } :null;
+
+          const name = holdings? holdings.name :(holders? holders.name :symbolName);
+
+          const symbolResults = {
+            name,
+            symbol: symbolName,
+            holdings: holdings? _.get(holdings, 'cik', null) :null,
+            holders: holders? _.get(holders, 'cusip6', null) :null,
+          };
+
+          this.setState({ loading: false, symbolResults });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        this.setState({ loading: false });
       });
   }
 
@@ -172,15 +208,38 @@ export class SearchResults extends React.Component {
     const symbolQuery = this.state.symbolQuery;
 
     return (<div>
-      { (!loading && !companyResults && !symbolResults)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
+      { (!loading && !companyQuery && !symbolQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
+      { (!loading && (companyQuery || symbolQuery) && _.isEmpty(companyResults) && _.isEmpty(symbolResults))?
+        <>
+          <div style={{ minHeight: '30vh' }}></div>
+          {
+            (() => {
+              let noResults = 'No results';
+              if(companyQuery) {
+                noResults += ` for company query "${companyQuery}"`
+              }
+              if(companyQuery && symbolQuery) {
+                noResults += ' or';
+              }
+              if(symbolQuery) {
+                noResults += ` for symbol query "${symbolQuery}"`;
+              }
+              noResults += '.';
+
+              return noResults;
+            })()
+          }
+        </> :null}
       { (loading && (companyQuery || symbolQuery))? <><div style={{ minHeight: '30vh' }}></div>{ `One moment please ...` }</> :null}
-      { (companyResults && !loading)?
-      <div style={{ textAlign: 'left' }}>
+      { (!_.isEmpty(companyResults) && !loading)?
+      <div style={{ textAlign: 'left', fontSize: '16pt' }}>
+        <h2>Company Results</h2>
         <ul>
           { 
             _.reduce(companyResults, (acc, val, k) => {
               const item = <li key={ k.toString() }>
-                  { k.toString() + ' : ' }
+                  <strong>{ k.toString() }</strong>
+                  { ' : ' }
                   { !val.holders? null :
                     <Link to={ '/holders/' + val.holders.toString() }>
                       Holders
@@ -192,6 +251,7 @@ export class SearchResults extends React.Component {
                       Holdings
                     </Link>
                   }
+                  {!val.holders && !val.holdings? 'No holders or holdings views available.' :null}
                 </li>;
 
               return _.concat(acc, item);
@@ -200,6 +260,39 @@ export class SearchResults extends React.Component {
         </ul>
       </div>
       :null }
+      { (!_.isEmpty(symbolResults) && !loading)?
+      <div style={{ textAlign: 'left', fontSize: '16pt' }}>
+        <h2>Symbol Results</h2>
+        <ul>
+          { (() => {
+              const name = _.get(symbolResults, 'name', null);
+              const symbol = _.get(symbolResults, 'symbol', null);
+              const holders = _.get(symbolResults, 'holders', null);
+              const holdings = _.get(symbolResults, 'holdings', null);
+
+              console.log(symbolResults);
+
+              return <li key={ name }>
+                <strong>{ name + ' ( ' + symbol + ' )' }</strong>
+                { ' : ' }
+                { !holders? null :
+                  <Link to={ '/holders/' + holders }>
+                    Holders
+                  </Link>
+                }
+                {holders && holdings? ' | ' :null}
+                { !holdings? null :
+                  <Link to={ '/holdings/' + holdings }>
+                    Holdings
+                  </Link>
+                }
+                {!holders && !holdings? 'No holders or holdings views available.' :null}
+              </li>;
+            })()
+          }
+        </ul>
+      </div>
+      :null}
     </div>);
   }
 
