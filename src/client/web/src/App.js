@@ -86,7 +86,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <Router basename='/holdings'>
+      <Router basename={process.env.PUBLIC_URL} >
         <div className="App">
           {/*<div className="App-header">
             <h1>Holdings Analysis</h1>
