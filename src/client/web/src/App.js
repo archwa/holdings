@@ -88,15 +88,33 @@ class App extends React.Component {
 
   render() {
     return (
-      <Router basename={process.env.PUBLIC_URL} >
+      <Router>
         <div className="App">
           {/*<div className="App-header">
             <h1>Holdings Analysis</h1>
           </div>*/}
 
           <div className="App-body">
-            { !this.state.stitchInitialized && !this.state.loading? "Error connecting to MongoDB Stitch!" :null }
+            { !this.state.stitchInitialized && !this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Error connecting to MongoDB Stitch!</> :null }
             { !this.state.stitchInitialized && this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Connecting to MongoDB Stitch server ...</>:<>
+            <Switch>
+              <Route
+                path='/'
+                exact
+                render={
+                  (props) => <div className="Welcome">
+                    <h2>Welcome to the Holdings Analysis tool!</h2>
+                    <strong>Search tips:</strong>
+                    <ol>
+                      <li>Search tokens match by a logical <strong>OR</strong>.  Ex: <strong>tech media consulting firm</strong> yields results matching any of those words.</li>
+                      <li>To search by exact phrase, use double quotes ({ '"' }).  Ex: <strong>{ '"apple computer"' }</strong> yields results matching <strong>apple computer</strong> EXACTLY.</li>
+                      <li>To exclude a term, prepend that term with a hyphen ({ '-' }).  Ex: <strong>apple -computer</strong> yields results matching <strong>apple</strong> but NOT <strong>computer</strong>.</li>
+                    </ol>
+                    
+                  </div>
+                }
+              />
+            </Switch>
             <Search />
             <Switch>
               <Route

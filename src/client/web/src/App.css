@@ -29,3 +29,11 @@
   justify-content: center;
   font-family: 'raleway';
 }
+
+.Welcome {
+  margin: 10px;
+  justify-content: left;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
