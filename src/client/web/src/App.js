@@ -86,7 +86,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <Router>
+      <Router basename='/holdings'>
         <div className="App">
           {/*<div className="App-header">
             <h1>Holdings Analysis</h1>
