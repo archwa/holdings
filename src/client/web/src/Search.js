@@ -27,18 +27,22 @@ const styles = {
     position: 'relative',
     margin: '10px',
     textAlign: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   'textField': {
     margin: '5px',
+    width: '50%',
+    minWidth: '300px',
+    display: 'inline-block',
   },
   'buttonGroup': {
     position: 'absolute',
     top: '50%',
-    transform: 'translateY(-50%)'
+    transform: 'translateY(-50%)',
+    display: 'inline-block',
   },
   'button': {
-    height: '100%'
+    height: '100%',
   }
 };
 
@@ -111,6 +115,7 @@ export class Search extends React.Component {
         label='Search'
         variant='outlined'
         style={ styles.textField }
+        fullWidth
       />
       <ButtonGroup style={ styles.buttonGroup }>
         <ColorButton variant='contained' onClick={ this._handleCompanySearch } style={ styles.button }>
