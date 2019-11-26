@@ -135,7 +135,7 @@ export class HoldersView extends React.Component {
     });
 
     const columns = [
-      { id: 'name', label: 'Name', minWidth: 170 },
+      { id: 'name', label: 'Holder Name', minWidth: 170 },
       /*{ id: 'cik', label: 'CIK', minWidth: 100 },
       {
         id: 'cusip9',
@@ -148,16 +148,19 @@ export class HoldersView extends React.Component {
         label: 'From',
         minWidth: 170,
         format: value => value.toLocaleString(),
+        align: 'right'
       },
       {
         id: 'to',
         label: 'To',
         minWidth: 170,
+        align: 'right'
       },
       {
         id: 'ownership_length',
-        label: 'Ownership Length',
+        label: 'Ownership Length (Quarters)',
         minWidth: 170,
+        align: 'right'
       },
     ];
 
@@ -212,9 +215,9 @@ export class HoldersView extends React.Component {
                     <TableCell
                       key={column.id}
                       align={column.align}
-                      style={{ minWidth: column.minWidth }}
+                      style={{ minWidth: column.minWidth, fontFamily: 'Courier New' }}
                     >
-                      {column.label}
+                      <strong>{column.label}</strong>
                     </TableCell>
                   ))}
                 </TableRow>
@@ -226,7 +229,7 @@ export class HoldersView extends React.Component {
                       {columns.map(column => {
                         const value = row[column.id];
                         return (
-                          <TableCell key={column.id} align={column.align}>
+                          <TableCell key={column.id} align={column.align} style={{ fontFamily: 'Courier New' }}>
                             {column.format && typeof value === 'number' ? column.format(value) : value}
                           </TableCell>
                         );
