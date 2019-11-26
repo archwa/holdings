@@ -8,10 +8,12 @@ import {
 //  Link
 } from "react-router-dom";
 
+/*
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Button from '@material-ui/core/Button';
+*/
 
 // need this for the Stitch UI
 //import { StitchComponents } from './stitch';
@@ -86,42 +88,44 @@ class App extends React.Component {
     return (
       <Router>
         <div className="App">
-          <div className="App-header">
-            { /*<img src={Logo} id="logo" alt="GGHC logo" width={ 938/2 < this.state.window.width * 0.8? 938/2 :Math.round(this.state.window.width * 0.8) }/>*/ }
+          {/*<div className="App-header">
             <h1>Holdings Analysis</h1>
-          </div>
-            <div className="App-body">
-              { !this.state.stitchInitialized && !this.state.loading? "Error connecting to MongoDB Stitch!" :null }
-              { !this.state.stitchInitialized && this.state.loading? "Connecting to MongoDB Stitch server ...":<>
-              <Paper>
+          </div>*/}
+
+          <div className="App-body">
+            { !this.state.stitchInitialized && !this.state.loading? "Error connecting to MongoDB Stitch!" :null }
+            { !this.state.stitchInitialized && this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Connecting to MongoDB Stitch server ...</>:<>
+            { /*
+            <Paper>
               <TextField id="searchQuery" label="Search" variant="outlined" />
               <ButtonGroup variant="text" aria-label="regular contained button group">
                 <Button>Company</Button>
                 <Button>Symbol</Button>
               </ButtonGroup>
-              </Paper>
-              <Switch>
-                <Route
-                  path='/holdings/:cik?'
-                  render={
-                    (props) =>  <HoldingsView {...props}
-                                  stitch={ this.stitch }
-                                  stitchInitialized={ this.state.stitchInitialized }
-                                />
-                  }
-                />
-                <Route
-                  path='/holders/:cusip?'
-                  render={
-                    (props) =>  <HoldersView {...props}
-                                  stitch={ this.stitch }
-                                  stitchInitialized={ this.state.stitchInitialized }
-                                />
-                  }
-                />
-              </Switch>
-              </>}
-            </div>
+            </Paper>
+            */ }
+            <Switch>
+              <Route
+                path='/holdings/:cik?'
+                render={
+                  (props) =>  <HoldingsView {...props}
+                                stitch={ this.stitch }
+                                stitchInitialized={ this.state.stitchInitialized }
+                              />
+                }
+              />
+              <Route
+                path='/holders/:cusip?'
+                render={
+                  (props) =>  <HoldersView {...props}
+                                stitch={ this.stitch }
+                                stitchInitialized={ this.state.stitchInitialized }
+                              />
+                }
+              />
+            </Switch>
+            </>}
+          </div>
 
         </div>
       </Router>

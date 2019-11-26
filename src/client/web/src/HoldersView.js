@@ -84,26 +84,28 @@ export class HoldersView extends React.Component {
       const cusip6 = cusip.substr(0, 6);
       this.stitch.callFunction('getHoldersForIssuer', [ cusip6 ])
         .then(res => {
-          console.log(res);
           const holdings = _.get(res, 'data.holdings', null);
           let modifiedHoldings;
           
           if(holdings) {
-            modifiedHoldings = _.map(holdings, holding => ({
+            modifiedHoldings = _.map(holdings, (holding, index) => ({
               'name': _.get(holding, 'filer_names', ['null'])[0],
               'cik': _.get(holding, 'cik', null),
               'cusip9': _.get(holding, 'cusip9', null),
               'from': _.get(holding, 'from.year') + 'q' + _.get(holding, 'from.quarter'),
               'to': _.get(holding, 'to.year') + 'q' + _.get(holding, 'to.quarter'),
               'ownership_length': _.get(holding, 'ownership_length'),
+              'key': _.get(holding, 'cik', '') + index.toString()
             }));
           }
 
+          console.log(res);
           this.setState({
             'holders': modifiedHoldings,
             'loading': false,
+            'issuer_names': _.get(res, 'data.issuer_names', null)
+            //'
           });
-          console.log(this.state.holders);
         })
         .catch(err => {
           this.setState({
@@ -114,30 +116,33 @@ export class HoldersView extends React.Component {
     }
 
     else {
-      console.log(`No cusip "${strCusip}".`);
+      this.setState({
+        'loading': false,
+      });
     }
   }
 
 
   render() {
     const classes = makeStyles({
-  root: {
-    width: '100%',
-  },
-  tableWrapper: {
-    maxHeight: 440,
-    overflow: 'auto',
-  },
-});
+      root: {
+        width: '100%',
+      },
+      tableWrapper: {
+        maxHeight: 440,
+        overflow: 'auto',
+      },
+    });
+
     const columns = [
       { id: 'name', label: 'Name', minWidth: 170 },
-      { id: 'cik', label: 'CIK', minWidth: 100 },
+      /*{ id: 'cik', label: 'CIK', minWidth: 100 },
       {
         id: 'cusip9',
         label: 'CUSIP9',
         minWidth: 170,
         format: value => value.toLocaleString(),
-      },
+      },*/
       {
         id: 'from',
         label: 'From',
@@ -171,52 +176,80 @@ export class HoldersView extends React.Component {
 
     const rowsPerPage = this.state.tableInfo.rowsPerPage;
     const page = this.state.tableInfo.page;
+    const loading = this.state.loading;
+    const holders = this.state.holders;
+    const cusip = this.state.cusip;
+    let avgOwnership;
+
+    if(holders && holders.length) {
+      avgOwnership = _.reduce(_.map(holders, holder => holder.ownership_length), (acc, num) => {
+        return acc + num;
+      }, 0) / holders.length;
+      avgOwnership = Math.round(avgOwnership * 1000) / 1000;
+    }
+
+    const issuer_name = _.get(this.state, 'issuer_names.0', null);
     
     return (
-<Paper className={classes.root}>
-<div className={classes.tableWrapper}>
-      <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map(column => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!this.state.holders? null : this.state.holders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
-              return (
-                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                  {columns.map(column => {
-                    const value = row[column.id];
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                      </TableCell>
-                    );
-                  })}
+      <>
+        
+          { loading? <><div style={{ minHeight: '30vh' }}></div>Processing request ...</> :null}
+          { (!loading && (!holders || !holders.length)) ? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CUSIP "${cusip}"!` }</> :null}
+        { (!holders || !holders.length)? null :
+        <>
+        <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
+          <h1>{ issuer_name }</h1>
+        </div>
+        <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
+          <strong>Average ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
+        </div>
+        <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
+          <div className={classes.tableWrapper}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {columns.map(column => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{ minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 50, 100]}
-        component="div"
-        count={!this.state.holders? 0 :this.state.holders.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
-      </Paper>
+              </TableHead>
+              <TableBody>
+                {!this.state.holders? null : this.state.holders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row.key}>
+                      {columns.map(column => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            component="div"
+            count={!this.state.holders? 0 :this.state.holders.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+        </Paper>
+        </>
+        }
+      </>
     );
   }
 
