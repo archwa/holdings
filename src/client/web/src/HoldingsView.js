@@ -2,6 +2,8 @@ import React from 'react';
 import queryString from 'query-string';
 import _ from 'lodash';
 
+import { Link } from 'react-router-dom';
+
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
@@ -360,7 +362,15 @@ export class HoldingsView extends React.Component {
                         const value = row[column.id];
                         return (
                           <TableCell key={column.id} align={column.align} style={{ fontFamily: 'Courier New' }}>
-                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                            {
+                              (() => {
+                                if(column.id === 'name') {
+                                  return <Link style={{ textDecoration: 'none', color: 'blue' }} to={ '/holders/' + row.cusip6 }>{ value }</Link>;
+                                }
+
+                                return column.format && typeof value === 'number' ? column.format(value) : value;
+                              })()
+                            }
                           </TableCell>
                         );
                       })}
