@@ -10,6 +10,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
+import Checkbox from '@material-ui/core/Checkbox';
 
 // need CUSIP
 
@@ -25,6 +26,7 @@ export class HoldersView extends React.Component {
 
     // bind this to all non-React functions
     this._getHolders = this._getHolders.bind(this);
+    this._handleChange = this._handleChange.bind(this);
 
     const initialCusipFromPath = _.get(this.props, 'match.params.cusip', null);
     const initialCusipFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'cusip', null);
@@ -39,6 +41,7 @@ export class HoldersView extends React.Component {
         'page': 0,
         'rowsPerPage': 10
       },
+      'currentOnly': false
     };
   }
 
@@ -81,6 +84,12 @@ export class HoldersView extends React.Component {
     }
   }
 
+  _handleChange(event) {
+    this.setState({
+      'currentOnly': event.target.checked
+    });  
+  }
+
   _getHolders(cusip) {
     const strCusip = cusip.toString();
 
@@ -103,7 +112,10 @@ export class HoldersView extends React.Component {
             }));
           }
 
-          console.log(res);
+          if(_.isEmpty(modifiedHoldings)) {
+            modifiedHoldings = null;
+          }
+
           this.setState({
             'holders': modifiedHoldings,
             'loading': false,
@@ -184,9 +196,31 @@ export class HoldersView extends React.Component {
     const rowsPerPage = this.state.tableInfo.rowsPerPage;
     const page = this.state.tableInfo.page;
     const loading = this.state.loading;
-    const holders = _.filter(this.state.holders, holder => holder['name'] && holder['cik'] && holder['cusip9']);
+
+    const date = new Date();
+    const currentYear = date.getFullYear();
+    const currentQuarter = ~~((date.getMonth() + 1) / 3) + 1;
+
+    const currentOnly = this.state.currentOnly;
+
+    let holders = _.filter(this.state.holders, holder => holder['name'] && holder['cik'] && holder['cusip9']);
+    if(currentOnly) {
+      holders = _.filter(holders, holder => {
+        const holderYear = parseInt(_.get(holder, 'to', '0000q0').substring(0, 4));
+        const holderQuarter = parseInt(_.get(holder, 'to', '0000q0').substring(5, 6));
+
+        if(!Math.abs(currentYear - holderYear)) {
+          return Math.abs(currentQuarter - holderQuarter) <= 1;
+        }
+        
+        return Math.abs(currentYear - holderYear) === 1 && currentQuarter === 1 && holderQuarter === 4;
+      });
+    }
+
+    
+
     const cusip = this.state.cusip;
-    let avgOwnership;
+    let avgOwnership = 0;
 
     if(holders && holders.length) {
       avgOwnership = _.reduce(_.map(holders, holder => holder.ownership_length), (acc, num) => {
@@ -199,16 +233,21 @@ export class HoldersView extends React.Component {
     
     return (
       <>
-        
-          { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
-          { (!loading && (!holders || !holders.length)) ? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CUSIP "${cusip}"!` }</> :null}
-        { (!holders || !holders.length)? null :
+        { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
+        { (!loading && !holders)? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CUSIP "${cusip}"!` }</> :null}
+        { loading || !holders? null :
         <>
         <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
           <h1>{ issuer_name }</h1>
         </div>
-        <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
-          <strong>Average length of ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
+        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
+          <div><strong>Average length of ownership</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
+          <div>
+          <Checkbox
+            checked={currentOnly}
+            onChange={this._handleChange}
+            color="primary"
+          /> Show current holders only</div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>

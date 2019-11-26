@@ -10,6 +10,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
+import Checkbox from '@material-ui/core/Checkbox';
 
 // need CIK
 
@@ -25,6 +26,7 @@ export class HoldingsView extends React.Component {
 
     // bind this to all non-React functions
     this._getHoldings = this._getHoldings.bind(this);
+    this._handleChange = this._handleChange.bind(this);
 
     const initialCikFromPath = _.get(this.props, 'match.params.cik', null);
     const initialCikFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'cik', null);
@@ -39,6 +41,7 @@ export class HoldingsView extends React.Component {
         'page': 0,
         'rowsPerPage': 10
       },
+      'currentOnly': false
     };
   }
 
@@ -81,6 +84,12 @@ export class HoldingsView extends React.Component {
     }
   }
 
+  _handleChange(event) {
+    this.setState({
+      'currentOnly': event.target.checked
+    });  
+  }
+
   _getHoldings(cik) {
     const strCik = cik.toString();
 
@@ -103,7 +112,10 @@ export class HoldingsView extends React.Component {
             }));
           }
 
-          console.log(res);
+          if(_.isEmpty(modifiedHoldings)) {
+            modifiedHoldings = null;
+          }
+
           this.setState({
             'holdings': modifiedHoldings,
             'loading': false,
@@ -184,9 +196,31 @@ export class HoldingsView extends React.Component {
     const rowsPerPage = this.state.tableInfo.rowsPerPage;
     const page = this.state.tableInfo.page;
     const loading = this.state.loading;
-    const holdings = _.filter(this.state.holdings, holding => holding['name'] && holding['cusip6'] && holding['cusip9']);
+
+    const date = new Date();
+    const currentYear = date.getFullYear();
+    const currentQuarter = ~~((date.getMonth() + 1) / 3) + 1;
+
+    const currentOnly = this.state.currentOnly;
+
+    let holdings = _.filter(this.state.holdings, holding => holding['name'] && holding['cusip6'] && holding['cusip9']);
+    if(currentOnly) {
+      holdings = _.filter(holdings, holding => {
+        const holdingYear = parseInt(_.get(holding, 'to', '0000q0').substring(0, 4));
+        const holdingQuarter = parseInt(_.get(holding, 'to', '0000q0').substring(5, 6));
+
+        if(!Math.abs(currentYear - holdingYear)) {
+          return Math.abs(currentQuarter - holdingQuarter) <= 1;
+        }
+        
+        return Math.abs(currentYear - holdingYear) === 1 && currentQuarter === 1 && holdingQuarter === 4;
+      });
+    }
+
+
+
     const cik = this.state.cik;
-    let avgOwnership;
+    let avgOwnership = 0;
 
     if(holdings && holdings.length) {
       avgOwnership = _.reduce(_.map(holdings, holding => holding.ownership_length), (acc, num) => {
@@ -199,16 +233,21 @@ export class HoldingsView extends React.Component {
     
     return (
       <>
-        
-          { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
-          { (!loading && (!holdings || !holdings.length)) ? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CIK "${cik}"!` }</> :null}
-        { (!holdings || !holdings.length)? null :
+        { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
+        { (!loading && !holdings)? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CIK "${cik}"!` }</> :null}
+        { loading || !holdings? null :
         <>
         <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
           <h1>{ filer_name }</h1>
         </div>
-        <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
-          <strong>Average length of ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
+        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
+          <div><strong>Average length of ownership</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
+          <div>
+          <Checkbox
+            checked={currentOnly}
+            onChange={this._handleChange}
+            color="primary"
+          /> Show current holdings only</div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
