@@ -19,8 +19,141 @@ import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
+
+function TablePaginationActions(props) {
+  const useStyles1 = makeStyles(theme => ({
+    root: {
+      flexShrink: 0,
+      marginLeft: theme.spacing(2.5),
+    },
+  }));
+
+  const classes = useStyles1();
+  const theme = useTheme();
+  const { count, page, rowsPerPage, onChangePage } = props;
+
+  const handleFirstPageButtonClick = event => {
+    onChangePage(event, 0);
+  };
+
+  const handleBackButtonClick = event => {
+    onChangePage(event, page - 1);
+  };
+
+  const handleNextButtonClick = event => {
+    onChangePage(event, page + 1);
+  };
+
+  const handleLastPageButtonClick = event => {
+    onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+  };
+
+  return (
+    <div className={classes.root}>
+      <IconButton
+        onClick={handleFirstPageButtonClick}
+        disabled={page === 0}
+        aria-label="first page"
+      >
+        {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
+      </IconButton>
+      <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label="previous page">
+        {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
+      </IconButton>
+      <IconButton
+        onClick={handleNextButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="next page"
+      >
+        {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
+      </IconButton>
+      <IconButton
+        onClick={handleLastPageButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="last page"
+      >
+        {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
+      </IconButton>
+    </div>
+  );
+}
+
+TablePaginationActions.propTypes = {
+  count: PropTypes.number.isRequired,
+  onChangePage: PropTypes.func.isRequired,
+  page: PropTypes.number.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+};
+
+function desc(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function stableSort(array, cmp) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = cmp(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map(el => el[0]);
+}
+
+function getSorting(order, orderBy) {
+  return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
+}
 
 // need CUSIP
+function EnhancedTableHead(props) {
+  const { classes, order, orderBy, onRequestSort, headCells } = props;
+  const createSortHandler = property => event => {
+    onRequestSort(event, property);
+  };
+
+  return (
+    <TableHead>
+      <TableRow>
+        {headCells.map(headCell => (
+          <TableCell
+            key={headCell.id}
+            align={headCell.align}
+            style={{ minWidth: headCell.minWidth, fontFamily: 'Courier New' }}
+            padding={headCell.disablePadding ? 'none' : 'default'}
+            sortDirection={orderBy === headCell.id ? order : false}
+          >
+            <TableSortLabel
+              active={orderBy === headCell.id}
+              direction={order}
+              onClick={createSortHandler(headCell.id)}
+            >
+              {headCell.label}
+              {/*orderBy === headCell.id ? (
+                <span className={classes.visuallyHidden}>
+                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                </span>
+              ) : null*/}
+            </TableSortLabel>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+}
+
+EnhancedTableHead.propTypes = {
+  classes: PropTypes.object.isRequired,
+  onRequestSort: PropTypes.func.isRequired,
+  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
+  orderBy: PropTypes.string.isRequired,
+  headCells: PropTypes.object.isRequired,
+};
 
 
 export class HoldersView extends React.Component {
@@ -51,6 +184,8 @@ export class HoldersView extends React.Component {
       },
       'currentOnly': false,
       'tableDense': false,
+      'order': 'asc',
+      'orderBy': 'name',
     };
   }
 
@@ -107,9 +242,6 @@ export class HoldersView extends React.Component {
     }
   }
 
-  _handleChangeDensity(event) {
-  }
-
   _getHolders(cusip) {
     const strCusip = cusip.toString();
 
@@ -160,6 +292,16 @@ export class HoldersView extends React.Component {
 
 
   render() {
+
+    const order = this.state.order;
+    const orderBy = this.state.orderBy;
+
+    const handleRequestSort = (event, property) => {
+      const isDesc = orderBy === property && order === 'desc';
+      this.setState({ order: isDesc ? 'asc' : 'desc' });
+      this.setState({ orderBy: property });
+    };
+
     const classes = makeStyles({
       root: {
         width: '100%',
@@ -199,71 +341,6 @@ export class HoldersView extends React.Component {
         align: 'right'
       },
     ];
-
-    const useStyles1 = makeStyles(theme => ({
-      root: {
-        flexShrink: 0,
-        marginLeft: theme.spacing(2.5),
-      },
-    }));
-    
-    function TablePaginationActions(props) {
-      const classes = useStyles1();
-      const theme = useTheme();
-      const { count, page, rowsPerPage, onChangePage } = props;
-
-      const handleFirstPageButtonClick = event => {
-        onChangePage(event, 0);
-      };
-
-      const handleBackButtonClick = event => {
-        onChangePage(event, page - 1);
-      };
-
-      const handleNextButtonClick = event => {
-        onChangePage(event, page + 1);
-      };
-
-      const handleLastPageButtonClick = event => {
-        onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-      };
-
-      return (
-        <div className={classes.root}>
-          <IconButton
-            onClick={handleFirstPageButtonClick}
-            disabled={page === 0}
-            aria-label="first page"
-          >
-            {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
-          </IconButton>
-          <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label="previous page">
-            {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
-          </IconButton>
-          <IconButton
-            onClick={handleNextButtonClick}
-            disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-            aria-label="next page"
-          >
-            {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
-          </IconButton>
-          <IconButton
-            onClick={handleLastPageButtonClick}
-            disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-            aria-label="last page"
-          >
-            {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
-          </IconButton>
-        </div>
-      );
-    }
-
-    TablePaginationActions.propTypes = {
-      count: PropTypes.number.isRequired,
-      onChangePage: PropTypes.func.isRequired,
-      page: PropTypes.number.isRequired,
-      rowsPerPage: PropTypes.number.isRequired,
-    };
 
     const handleChangePage = (event, newPage) => {
       const tableInfo = this.state.tableInfo;
@@ -326,14 +403,7 @@ export class HoldersView extends React.Component {
         <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
           <h1>{ issuer_name }</h1>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'Courier New', textAlign: 'right', margin: '10px' }}>
-          <div><strong>Average length of ownership</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
-          <div>
-          Show current holders only <Checkbox
-            checked={currentOnly}
-            onChange={(event) => this._handleChange(event, 'current_only')}
-            color="primary"
-          /></div>
+        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right', margin: '10px' }}>
           <div>
           Dense table padding
           <Checkbox
@@ -341,11 +411,18 @@ export class HoldersView extends React.Component {
             onChange={(event) => this._handleChange(event, 'table_density')}
             color="primary"
           /></div>
+          <div>
+          Show current holders only <Checkbox
+            checked={currentOnly}
+            onChange={(event) => this._handleChange(event, 'current_only')}
+            color="primary"
+          /></div>
+          <div style={{ fontFamily: 'Courier New' }}><strong>Average Ownership Length</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
             <Table size={ tableDense? 'small' :'medium' } stickyHeader aria-label="sticky table">
-              <TableHead>
+              { /*<TableHead>
                 <TableRow>
                   {columns.map(column => (
                     <TableCell
@@ -357,9 +434,16 @@ export class HoldersView extends React.Component {
                     </TableCell>
                   ))}
                 </TableRow>
-              </TableHead>
+              </TableHead> */ }
+              <EnhancedTableHead
+                classes={classes}
+                order={order}
+                orderBy={orderBy}
+                onRequestSort={handleRequestSort}
+                headCells={columns}
+              />
               <TableBody>
-                {!holders? null : holders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                {!holders? null : stableSort(holders, getSorting(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
                   return (
                     <TableRow hover tabIndex={-1} key={row.key}>
                       {columns.map(column => {
