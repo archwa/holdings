@@ -118,6 +118,7 @@ export class HoldersView extends React.Component {
     else {
       this.setState({
         'loading': false,
+        'cusip': strCusip,
       });
     }
   }

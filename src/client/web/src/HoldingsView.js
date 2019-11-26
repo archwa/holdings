@@ -81,7 +81,7 @@ export class HoldingsView extends React.Component {
     const strCik = cik.toString();
 
     if(strCik.length <= 10) {
-      const cik = cik.padStart(10, '0');
+      const cik = strCik.padStart(10, '0');
       this.stitch.callFunction('getHoldingsForFiler', [ cik ])
         .then(res => {
           const holdings = _.get(res, 'data.holdings', null);
@@ -103,7 +103,7 @@ export class HoldingsView extends React.Component {
           this.setState({
             'holdings': modifiedHoldings,
             'loading': false,
-            'issuer_names': _.get(res, 'data.issuer_names', null)
+            'filer_names': _.get(res, 'data.filer_names', null)
             //'
           });
         })
@@ -118,6 +118,7 @@ export class HoldingsView extends React.Component {
     else {
       this.setState({
         'loading': false,
+        'cik': strCik,
       });
     }
   }
@@ -191,7 +192,7 @@ export class HoldingsView extends React.Component {
       avgOwnership = Math.round(avgOwnership * 1000) / 1000;
     }
 
-    const issuer_name = _.get(this.state, 'issuer_names.0', null);
+    const filer_name = _.get(this.state, 'filer_names.0', null);
     
     return (
       <>
@@ -201,7 +202,7 @@ export class HoldingsView extends React.Component {
         { (!holdings || !holdings.length)? null :
         <>
         <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
-          <h1>{ issuer_name }</h1>
+          <h1>{ filer_name }</h1>
         </div>
         <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
           <strong>Average ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
