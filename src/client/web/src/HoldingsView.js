@@ -48,6 +48,10 @@ export class HoldingsView extends React.Component {
     if(this.props.stitchInitialized && cik) {
       this._getHoldings(cik);
     }
+
+    else if(this.props.stitchInitialized && this.state.loading) {
+      this.setState({ loading: false });
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -89,7 +93,7 @@ export class HoldingsView extends React.Component {
           
           if(holdings) {
             modifiedHoldings = _.map(holdings, (holding, index) => ({
-              'name': _.get(holding, 'issuer_names', ['null'])[0],
+              'name': _.get(holding, 'issuer_names.0', null),
               'cusip6': _.get(holding, 'cusip6', null),
               'cusip9': _.get(holding, 'cusip9', null),
               'from': _.get(holding, 'from.year') + 'q' + _.get(holding, 'from.quarter'),
@@ -104,7 +108,6 @@ export class HoldingsView extends React.Component {
             'holdings': modifiedHoldings,
             'loading': false,
             'filer_names': _.get(res, 'data.filer_names', null)
-            //'
           });
         })
         .catch(err => {
@@ -147,20 +150,20 @@ export class HoldingsView extends React.Component {
       {
         id: 'from',
         label: 'From',
-        minWidth: 170,
+        minWidth: 70,
         format: value => value.toLocaleString(),
         align: 'right'
       },
       {
         id: 'to',
         label: 'To',
-        minWidth: 170,
+        minWidth: 70,
         align: 'right'
       },
       {
         id: 'ownership_length',
         label: 'Ownership Length (Quarters)',
-        minWidth: 170,
+        minWidth: 70,
         align: 'right'
       },
     ];
@@ -181,7 +184,7 @@ export class HoldingsView extends React.Component {
     const rowsPerPage = this.state.tableInfo.rowsPerPage;
     const page = this.state.tableInfo.page;
     const loading = this.state.loading;
-    const holdings = this.state.holdings;
+    const holdings = _.filter(this.state.holdings, holding => holding['name'] && holding['cusip6'] && holding['cusip9']);
     const cik = this.state.cik;
     let avgOwnership;
 
@@ -197,7 +200,7 @@ export class HoldingsView extends React.Component {
     return (
       <>
         
-          { loading? <><div style={{ minHeight: '30vh' }}></div>Processing request ...</> :null}
+          { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
           { (!loading && (!holdings || !holdings.length)) ? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CIK "${cik}"!` }</> :null}
         { (!holdings || !holdings.length)? null :
         <>
@@ -205,7 +208,7 @@ export class HoldingsView extends React.Component {
           <h1>{ filer_name }</h1>
         </div>
         <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
-          <strong>Average ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
+          <strong>Average length of ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
@@ -224,9 +227,9 @@ export class HoldingsView extends React.Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!this.state.holdings? null : this.state.holdings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                {!holdings? null : holdings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
                   return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.key}>
+                    <TableRow hover tabIndex={-1} key={row.key}>
                       {columns.map(column => {
                         const value = row[column.id];
                         return (
@@ -244,7 +247,7 @@ export class HoldingsView extends React.Component {
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 100]}
             component="div"
-            count={!this.state.holdings? 0 :this.state.holdings.length}
+            count={!holdings? 0 :holdings.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}

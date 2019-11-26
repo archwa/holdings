@@ -48,6 +48,10 @@ export class HoldersView extends React.Component {
     if(this.props.stitchInitialized && cusip) {
       this._getHolders(cusip);
     }
+
+    else if(this.props.stitchInitialized && this.state.loading) {
+      this.setState({ loading: false });
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -89,7 +93,7 @@ export class HoldersView extends React.Component {
           
           if(holdings) {
             modifiedHoldings = _.map(holdings, (holding, index) => ({
-              'name': _.get(holding, 'filer_names', ['null'])[0],
+              'name': _.get(holding, 'filer_names.0', null),
               'cik': _.get(holding, 'cik', null),
               'cusip9': _.get(holding, 'cusip9', null),
               'from': _.get(holding, 'from.year') + 'q' + _.get(holding, 'from.quarter'),
@@ -104,7 +108,6 @@ export class HoldersView extends React.Component {
             'holders': modifiedHoldings,
             'loading': false,
             'issuer_names': _.get(res, 'data.issuer_names', null)
-            //'
           });
         })
         .catch(err => {
@@ -147,14 +150,14 @@ export class HoldersView extends React.Component {
       {
         id: 'from',
         label: 'From',
-        minWidth: 170,
+        minWidth: 70,
         format: value => value.toLocaleString(),
         align: 'right'
       },
       {
         id: 'to',
         label: 'To',
-        minWidth: 170,
+        minWidth: 70,
         align: 'right'
       },
       {
@@ -181,7 +184,7 @@ export class HoldersView extends React.Component {
     const rowsPerPage = this.state.tableInfo.rowsPerPage;
     const page = this.state.tableInfo.page;
     const loading = this.state.loading;
-    const holders = this.state.holders;
+    const holders = _.filter(this.state.holders, holder => holder['name'] && holder['cik'] && holder['cusip9']);
     const cusip = this.state.cusip;
     let avgOwnership;
 
@@ -197,7 +200,7 @@ export class HoldersView extends React.Component {
     return (
       <>
         
-          { loading? <><div style={{ minHeight: '30vh' }}></div>Processing request ...</> :null}
+          { loading? <><div style={{ minHeight: '30vh' }}></div>One moment please ...</> :null}
           { (!loading && (!holders || !holders.length)) ? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CUSIP "${cusip}"!` }</> :null}
         { (!holders || !holders.length)? null :
         <>
@@ -205,7 +208,7 @@ export class HoldersView extends React.Component {
           <h1>{ issuer_name }</h1>
         </div>
         <div style={{ display: 'block', fontFamily: 'Courier New', textAlign: 'left', margin: '10px' }}>
-          <strong>Average ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
+          <strong>Average length of ownership</strong>: { avgOwnership } quarters ({avgOwnership / 4} years)
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
@@ -224,9 +227,9 @@ export class HoldersView extends React.Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!this.state.holders? null : this.state.holders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                {!holders? null : holders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
                   return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.key}>
+                    <TableRow hover tabIndex={-1} key={row.key}>
                       {columns.map(column => {
                         const value = row[column.id];
                         return (
@@ -244,7 +247,7 @@ export class HoldersView extends React.Component {
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 100]}
             component="div"
-            count={!this.state.holders? 0 :this.state.holders.length}
+            count={!holders? 0 :holders.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}

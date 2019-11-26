@@ -18,6 +18,8 @@ import Button from '@material-ui/core/Button';
 // need this for the Stitch UI
 //import { StitchComponents } from './stitch';
 
+import { Search } from './Search';
+import { SearchResults } from './SearchResults';
 import { HoldingsView } from './HoldingsView';
 import { HoldersView } from './HoldersView';
 import { StitchController } from './stitch';
@@ -95,16 +97,17 @@ class App extends React.Component {
           <div className="App-body">
             { !this.state.stitchInitialized && !this.state.loading? "Error connecting to MongoDB Stitch!" :null }
             { !this.state.stitchInitialized && this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Connecting to MongoDB Stitch server ...</>:<>
-            { /*
-            <Paper>
-              <TextField id="searchQuery" label="Search" variant="outlined" />
-              <ButtonGroup variant="text" aria-label="regular contained button group">
-                <Button>Company</Button>
-                <Button>Symbol</Button>
-              </ButtonGroup>
-            </Paper>
-            */ }
+            <Search />
             <Switch>
+              <Route
+                path='/search/:search?'
+                render={
+                  (props) =>  <SearchResults {...props}
+                                stitch={ this.stitch }
+                                stitchInitialized={ this.state.stitchInitialized }
+                              />
+                }
+              />
               <Route
                 path='/holdings/:cik?'
                 render={
