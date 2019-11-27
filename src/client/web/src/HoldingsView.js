@@ -416,7 +416,10 @@ export class HoldingsView extends React.Component {
           <div>
           Show current holdings only <Checkbox
             checked={currentOnly}
-            onChange={(event) => this._handleChange(event, 'current_only')}
+            onChange={(event) => {
+              this._handleChange(event, 'current_only');
+              handleChangePage(event, 0);
+            }}
             color="primary"
           /></div>
           <div style={{ fontFamily: 'Courier New' }}><strong>Average Ownership Length</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
