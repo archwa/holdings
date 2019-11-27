@@ -173,6 +173,10 @@ export class SearchResults extends React.Component {
           this.setState({ loading: false, symbolResults: null });
         }
 
+        if(res.status < 0) {
+          console.error(res.message);
+        }
+
         else {
           const data = _.get(res, 'data', null);
           const symbolName = _.get(data, 'symbol.symbol', null);
