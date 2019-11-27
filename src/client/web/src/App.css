@@ -31,9 +31,15 @@
 }
 
 .Welcome {
-  margin: 10px;
+  margin: 20px 10px;
   justify-content: left;
   text-align: left;
   display: flex;
   flex-direction: column;
+}
+
+a:active, a:focus {
+  outline: 0;
+  border: none;
+  -moz-outline-style: none;
 }

@@ -1,11 +1,12 @@
 import React from 'react';
 import './App.css';
+import { blue } from '@material-ui/core/colors';
 
 import {
   HashRouter as Router,
   Switch,
   Route,
-//  Link
+  Link
 } from "react-router-dom";
 
 /*
@@ -23,6 +24,7 @@ import { SearchResults } from './SearchResults';
 import { HoldingsView } from './HoldingsView';
 import { HoldersView } from './HoldersView';
 import { StitchController } from './stitch';
+import HomeIcon from '@material-ui/icons/Home';
 
 //import Logo from './media/assets/images/gghc.png';
 
@@ -97,6 +99,9 @@ class App extends React.Component {
           <div className="App-body">
             { !this.state.stitchInitialized && !this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Error connecting to MongoDB Stitch!</> :null }
             { !this.state.stitchInitialized && this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Connecting to MongoDB Stitch server ...</>:<>
+            <Link to='/' style={{ zIndex: 10, width: 32, height: 32, position: 'absolute', top: 5, left: 5 }}><HomeIcon
+              style={{ width: 32, height: 32, color: blue[500]}}
+            /></Link>
             <Switch>
               <Route
                 path='/'
