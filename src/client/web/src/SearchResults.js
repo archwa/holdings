@@ -77,6 +77,14 @@ export class SearchResults extends React.Component {
     this.setState({ loading: true });
     this.stitch.callFunction('searchForCompany', [ q ])
       .then(res => {
+        if(res.data.filerSearch.status < 0) {
+          console.error(res.data.filerSearch.message);
+        }
+
+        if(res.data.issuerSearch.status < 0) {
+          console.error(res.data.issuerSearch.message);
+        }
+
         const filerData = _.get(res, 'data.filerSearch.data', null);
         const issuerData = _.get(res, 'data.issuerSearch.data', null);
 
