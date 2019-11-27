@@ -148,7 +148,6 @@ export class SearchResults extends React.Component {
 
         const companyResults = _.merge(holders, filers);
 
-        console.log(res);
         this.setState({ loading: false, companyResults });
       })
       .catch(err => {
@@ -159,10 +158,8 @@ export class SearchResults extends React.Component {
 
   _searchSymbol(q) {
     this.setState({ loading: true });
-    console.log(q);
     this.stitch.callFunction('searchForSymbol', [ q ])
       .then(res => {
-        console.log(res);
         // no results
         if(!res.status && !res.data) {
           this.setState({ loading: false, symbolResults: null });
@@ -269,8 +266,6 @@ export class SearchResults extends React.Component {
               const symbol = _.get(symbolResults, 'symbol', null);
               const holders = _.get(symbolResults, 'holders', null);
               const holdings = _.get(symbolResults, 'holdings', null);
-
-              console.log(symbolResults);
 
               return <li key={ name }>
                 <strong>{ name + ' ( ' + symbol + ' )' }</strong>

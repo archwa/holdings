@@ -81,8 +81,6 @@ export class Search extends React.Component {
     newRedirect.location = ('/search?' + qs);
     newRedirect.go = true;
 
-    console.log(this.state.value);
-    console.log(newRedirect);
     this.setState({ redirect: newRedirect });  
   }
 
@@ -98,8 +96,6 @@ export class Search extends React.Component {
     newRedirect.location = ('/search?' + qs);
     newRedirect.go = true;
 
-    console.log(this.state.value);
-    console.log(newRedirect);
     this.setState({ redirect: newRedirect });  
   }
 
