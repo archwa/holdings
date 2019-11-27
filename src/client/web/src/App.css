@@ -24,7 +24,22 @@
 
 .App-body {
   display: flex;
-  /*flex-direction: column;*/
+  flex-direction: column;
+  text-align: center;
   justify-content: center;
   font-family: 'raleway';
+}
+
+.Welcome {
+  margin: 20px 10px;
+  justify-content: left;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+a:active, a:focus {
+  outline: 0;
+  border: none;
+  -moz-outline-style: none;
 }

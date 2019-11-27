@@ -2,7 +2,9 @@
 .pyenv
 __pycache__
 activate
-data
+data/*
+!data/13flists
+*.pdf
 *.tgz
 *.tar.gz
 *.tar.z

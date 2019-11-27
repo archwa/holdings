@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'lodash';
+//import _ from 'lodash';
 
 import { StitchController } from '../';
 import { Input, Button, ButtonGroup } from '@material-ui/core';
@@ -30,15 +30,20 @@ export class UserInput extends React.Component {
     const cleanInput = this.state.inputValue;
 
     // TODO : add support for the checkbox (choosing the current holders / positions only)
-    const options = {
+    /*const options = {
       currentOnly: false
-    };
+    };*/
 
     switch(name) {
-      case 'fund':
-        this.stitch.callFunction('searchForFund', [cleanInput])
+      case 'company':
+        this.stitch.callFunction('searchForCompany', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+          return {
+            'companySearchResult': searchResult
+          };
+        })
+          /*
           // TODO : check status of result
           const cik = _.get(searchResult, 'data.cik', null);
 
@@ -62,16 +67,21 @@ export class UserInput extends React.Component {
         .then(res => {
           console.log(res);
           return this.props.handleSubmission(res);
-        })
+        })*/
         .catch(err => {
           console.log(err);
         });
         break;
 
-      case 'ticker':
-        this.stitch.callFunction('searchForCompany', [cleanInput])
+      case 'symbol':
+        this.stitch.callFunction('searchForSymbol', [cleanInput])
         .then(searchResult => {
           console.log(searchResult);
+          return {
+            'symbolSearchResult': searchResult
+          };
+        })
+          /*
           // TODO : check status of result
           const cusip = _.get(searchResult, 'data.cusip', null);
           
@@ -89,7 +99,7 @@ export class UserInput extends React.Component {
         .then(res => {
           console.log(res);
           return this.props.handleSubmission(res);
-        })
+        })*/
         .catch(err => {
           console.log(err);
         });
@@ -117,7 +127,7 @@ export class UserInput extends React.Component {
         <Input
           disabled={ this.state.loading }
           error={ this.state.error }
-          placeholder="Search ..."
+          placeholder="Search by ..."
           style={ styles.input }
           value={ this.state.inputValue }
           onChange={ this._handleInputChange }
@@ -125,15 +135,15 @@ export class UserInput extends React.Component {
         <ButtonGroup>
           <Button
             disabled={ this.state.loading }
-            onClick={ () => this._handleClick('fund') }
+            onClick={ () => this._handleClick('company') }
           >
-            Fund
+            Company
           </Button>
           <Button
             disabled={ this.state.loading }
-            onClick={ () => this._handleClick('ticker') }
+            onClick={ () => this._handleClick('symbol') }
           >
-            Ticker
+            Symbol
           </Button>
         </ButtonGroup>
       </div>
