@@ -29,16 +29,15 @@ stitch-backup:
 	@printf "[$@] Logging out of stitch-cli ...\n"
 	@stitch-cli logout
   
+info-db:
+	@printf "[$@] Running script to show existing MongoDB collections ...\n"
+	$(PYTHON) src/server/info_db.py
 
 debug-db:
 	$(PYTHON) -i src/server/debug_db.py
 
-update-db:
-	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/server/$@.pl
+#cron-job-for-update-db:
 
-info-db:
-	@printf "[$@] Running script to show existing MongoDB collections ...\n"
-	$(PYTHON) src/server/info_db.py
 
 # long process; run all import scripts after making sure the data is current
 import-holdings:
