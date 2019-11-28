@@ -5,13 +5,13 @@ use MongoDB;
 
 # create a client
 my $client = MongoDB::MongoClient->new(
-  host => 'mongodb+srv://cluster0-gga6t.mongodb.net/test?retryWrites=true&w=majority',
-  username => 'scriptuser',
-  password => 'Scdl1nR6Q9IK2DMJ',
+  host => $ENV{'MONGODB_PROTOCOL'} . '://' . $ENV{'MONGODB_HOST'},
+  username => $ENV{'MONGODB_USER'},
+  password => $ENV{'MONGODB_PASS'},
 );
 
 # connection string
-my $db = $client->get_database('filings');
+my $db = $client->get_database($ENV{'FILINGS_DB'});
 
 my $colls = $db->list_collections();
 # print Dumper $colls;

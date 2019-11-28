@@ -1,0 +1,11 @@
+{
+    "app_id": "filings-uypee",
+    "config_version": 20180301,
+    "name": "filings",
+    "location": "US-VA",
+    "deployment_model": "GLOBAL",
+    "security": {},
+    "custom_user_data_config": {
+        "enabled": false
+    }
+}

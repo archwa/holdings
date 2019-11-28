@@ -1,9 +1,9 @@
 exports = function(q){
   const db = context.services.get("mongodb-atlas").db("filings");
-  const issuers = db.collection("issuers");
+  const filers = db.collection("filers");
   
   
-  return issuers.find({
+  return filers.find({
     "$text": {
       "$search": q.toString()
     } 
@@ -13,24 +13,24 @@ exports = function(q){
       "$meta": "textScore"
     }
   }).sort( { "score": { $meta: "textScore" } } ).toArray()
-    .then(resIssuers => {
-      // no or many results; return Issuers results
-      if(resIssuers.length !== 1) {
-        return [resIssuers.length, resIssuers];
+    .then(resFilers => {
+      // no or many results; return filers results
+      if(resFilers.length !== 1) {
+        return [resFilers.length, resFilers];
       }
 
       // one result; return holders for that result
-      const issuer = resIssuers[0];
-      return Promise.all([resIssuers.length, context.functions.execute("getHoldersForIssuer", issuer.cusip6)]);
+      const filer = resFilers[0];
+      return Promise.all([resFilers.length, context.functions.execute("getHoldingsForFiler", filer.cik)]);
     })
-    .then(resArr => {
-      const lenRes = resArr[0];
-      const resData = resArr[1];
+    .then(res => {
+      const lenRes = res[0];
+      const resData = res[1];
       
       const result = {
         query: {
           q: q.toString(),
-          type: "issuer"
+          type: "filer"
         },
         status: 0,
         message: `Found ${lenRes} results for \`q\` = \`${q.toString()}\`!  See \`data\` for more info.`,
@@ -45,9 +45,9 @@ exports = function(q){
     .catch(err => ({
       query: {
         q: q.toString(),
-        type: "issuer"
+        type: "filer"
       },
       status: -1,
-      message: `Error while running \`searchForIssuer\`: ${err}`
+      message: `Error while running \`searchForFiler\`: ${err}`
     }));
 };

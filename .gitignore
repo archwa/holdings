@@ -5,6 +5,7 @@ activate
 data/*
 !data/13flists
 *.pdf
+!doc/*.pdf
 *.tgz
 *.tar.gz
 *.tar.z

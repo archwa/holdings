@@ -1,11 +1,15 @@
 .PHONY: all run run-client-web info-db update-db setup clean
 
 SHELL:=/bin/bash
+ENV_FILE=.env
 VENV_NAME=.pyenv
-VENV_PROMPT=gghc
+VENV_PROMPT=holdings
 PIP=pip3
 PYTHON=python3
 DEP_FILE=requirements.txt
+
+# import environment variables
+include $(ENV_FILE)
 
 all: # empty recipe
 	
@@ -14,6 +18,21 @@ run: run-client-web
 run-client-web:
 	@printf "[$@] Running client web app ...\n"
 	cd src/client/web && npm start
+
+stitch-backup:
+	@source $(ENV_FILE)
+	@printf "[$@] Logging out of stitch-cli ...\n"
+	@stitch-cli logout
+	@printf "[$@] Logging into stitch-cli as \`$(ATLAS_API_PUBKEY)\` ...\n"
+	@stitch-cli login --api-key=$(ATLAS_API_PUBKEY) --private-api-key=$(ATLAS_API_SECRET)
+	@printf "[$@] Exporting Stitch App with ID \`$(STITCH_APP_ID)\` to \`src/server/stitch\` ...\n"
+	@stitch-cli export --app-id=$(STITCH_APP_ID) --output=src/server/stitch
+	@printf "[$@] Logging out of stitch-cli ...\n"
+	@stitch-cli logout
+  
+
+debug-db:
+	$(PYTHON) -i src/server/debug_db.py
 
 update-db:
 	cat form.idx | eval $$(egrep -v '^#' \.env | xargs) ./src/server/$@.pl
