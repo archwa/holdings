@@ -1,8 +1,6 @@
-# Holdings
+# Holdings Analysis
 
-## Housekeeping
-
-Managing the project directory.
+Enable research of both current & historical holders of issued financial securities (holdings).
 
 ## Dependencies
 
@@ -10,15 +8,15 @@ These packages are required.
 
 - make
 - nodejs, npm
+- python3 (>= 3.6), python3-pip, python3-venv
 - perl (for now ...)
-- python3, python3-pip, python3-venv
 
 ### Python dependency management
 
 Use the custom dependency management tool `dep` to manage dependencies manually.  `dep` manages `$DEP_FILE` (in this case, `requirements.txt`) according to manual entries.  *Note: `source activate` to add `utils` to PATH, excluding `./utils/` from `./utils/dep`, resulting in the easier `dep`.*
 
 ```bash
-dep list  # list dependencies
+dep ls                         # list dependencies
 dep add  <PYTHON_PKG_KEYWORD>  # add dependency with keyword from 'pip freeze'
 dep rm   <PYTHON_PKG_KEYWORD>  # remove dependency with keyword from $(DEP_FILE)
 ```
@@ -96,8 +94,8 @@ make clean
 
 There are two client applications:
 
-- mobile
 - web
+- mobile
 
 To run the `web` client, make sure to run `npm install --no-optional` within the `src/client/web/` directory.  Once you have done that, you can run the client with `make run-client-web`.
 
