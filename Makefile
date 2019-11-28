@@ -20,7 +20,6 @@ run-client-web:
 	cd src/client/web && npm start
 
 stitch-backup:
-	@source $(ENV_FILE)
 	@printf "[$@] Logging out of stitch-cli ...\n"
 	@stitch-cli logout
 	@printf "[$@] Logging into stitch-cli as \`$(ATLAS_API_PUBKEY)\` ...\n"
