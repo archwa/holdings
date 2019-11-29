@@ -393,6 +393,16 @@ export class HoldingsView extends React.Component {
       });
     }
 
+    const filterValue = this.state.filter;
+
+    if(!_.isEmpty(filterValue)) {
+      const filterValueLower = _.lowerCase(filterValue.toString());
+      const colKeys = _.map(columns, column => column.id);
+      holdings = _.filter(holdings, holding => {
+        const slimHolding = _.pick(holding, colKeys);
+        return _.map(_.values(slimHolding), value => _.includes(_.lowerCase(value.toString()), filterValueLower)).some(a => a)
+      });
+    }
 
 
     const cik = this.state.cik;
@@ -403,17 +413,6 @@ export class HoldingsView extends React.Component {
         return acc + num;
       }, 0) / holdings.length;
       avgOwnership = Math.round(avgOwnership * 1000) / 1000;
-    }
-
-    const filterValue = this.state.filter;
-
-    if(!_.isEmpty(filterValue)) {
-      const filterValueLower = _.lowerCase(filterValue.toString());
-      const colKeys = _.map(columns, column => column.id);
-      holdings = _.filter(holdings, holding => {
-        const slimHolding = _.pick(holding, colKeys);
-        return _.map(_.values(slimHolding), value => _.includes(_.lowerCase(value.toString()), filterValueLower)).some(a => a)
-      });
     }
 
     const filer_name = _.get(this.state, 'filer_names.0', null);
