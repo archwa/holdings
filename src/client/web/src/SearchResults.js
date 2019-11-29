@@ -2,7 +2,7 @@ import React from 'react';
 import queryString from 'query-string';
 import _ from 'lodash';
 
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 export class SearchResults extends React.Component {
 
@@ -25,6 +25,10 @@ export class SearchResults extends React.Component {
       'companyResults': null,
       'symbolResults': null,
       'loading': true,
+      'redirect': {
+        go: false,
+        location: '/',
+      },
     };
   }
 
@@ -156,7 +160,31 @@ export class SearchResults extends React.Component {
 
         const companyResults = _.merge(holders, filers);
 
-        this.setState({ loading: false, companyResults });
+        const companyResultsValues = _.values(companyResults);
+
+        if(companyResultsValues.length === 1) {
+          const company = _.first(companyResultsValues);
+          const companyKeys = _.keys(company);
+
+          if(companyKeys.length === 1) {
+            const loc = _.first(companyKeys).toString();
+            const id = _.get(company, loc).toString();
+
+            let newRedirect = { ...this.state.redirect };
+            newRedirect.location = ('/' + loc + '/' + id);
+            newRedirect.go = true;
+
+            this.setState({ redirect: newRedirect });  
+          }
+
+          else {
+            this.setState({ loading: false, companyResults });
+          }
+        }
+
+        else {
+          this.setState({ loading: false, companyResults });
+        }
       })
       .catch(err => {
         console.error(err);
@@ -191,6 +219,7 @@ export class SearchResults extends React.Component {
             'cusip6': _.get(holdersView, 'data.issuer_cusip6', null),
           } :null;
 
+
           const name = holdings? holdings.name :(holders? holders.name :symbolName);
 
           const symbolResults = {
@@ -200,7 +229,25 @@ export class SearchResults extends React.Component {
             holders: holders? _.get(holders, 'cusip6', null) :null,
           };
 
-          this.setState({ loading: false, symbolResults });
+          if(symbolResults.holdings && !symbolResults.holders) {
+            let newRedirect = { ...this.state.redirect };
+            newRedirect.location = ('/holdings/' + symbolResults.holdings.toString());
+            newRedirect.go = true;
+
+            this.setState({ redirect: newRedirect });  
+          }
+          
+          else if(!symbolResults.holdings && symbolResults.holders) {
+            let newRedirect = { ...this.state.redirect };
+            newRedirect.location = ('/holders/' + symbolResults.holders.toString());
+            newRedirect.go = true;
+
+            this.setState({ redirect: newRedirect });  
+          }
+          
+          else {
+            this.setState({ loading: false, symbolResults });
+          }
         }
       })
       .catch(err => {
@@ -216,7 +263,11 @@ export class SearchResults extends React.Component {
     const companyQuery = this.state.companyQuery;
     const symbolQuery = this.state.symbolQuery;
 
+    const redirect = this.state.redirect.go;
+    const location = this.state.redirect.location;
+
     return (<div>
+      { redirect? <Redirect to={ location } /> :null }
       { (!loading && !companyQuery && !symbolQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
       { (!loading && (companyQuery || symbolQuery) && _.isEmpty(companyResults) && _.isEmpty(symbolResults))?
         <>

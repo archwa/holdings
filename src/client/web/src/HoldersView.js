@@ -195,8 +195,8 @@ export class HoldersView extends React.Component {
         'rowsPerPage': 10
       },
       'currentOnly': false,
-      'order': 'asc',
-      'orderBy': 'name',
+      'order': 'desc',
+      'orderBy': 'ownership_length',
       'filter': '',
     };
   }
