@@ -127,6 +127,7 @@ class App extends React.Component {
                       <li>By default, search tokens match by a logical <em>or</em> operation.  <strong>Example:</strong> The search query <strong>apple computer</strong> yields results matching <strong>apple</strong>, <strong>computer</strong>, or <em>both</em>.</li>
                       <li>To search by exact phrase, use double quotes ({ '"' }).  <strong>Example:</strong> The search query <strong>{ '"apple computer"' }</strong> yields results matching <strong>apple computer</strong> EXACTLY.</li>
                       <li>To exclude a term, prepend that term with a hyphen ({ '-' }).  <strong>Example:</strong> The search query <strong>apple -computer</strong> yields results matching <strong>apple</strong> but NOT <strong>computer</strong>.</li>
+                      <li>Search queries are case-insensitive.</li>
                     </ul>
 
                   </div>
