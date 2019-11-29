@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/holdings/static/css/main.5064ea5e.chunk.css",
-    "main.js": "/holdings/static/js/main.5abbc310.chunk.js",
-    "main.js.map": "/holdings/static/js/main.5abbc310.chunk.js.map",
+    "main.js": "/holdings/static/js/main.ef31de20.chunk.js",
+    "main.js.map": "/holdings/static/js/main.ef31de20.chunk.js.map",
     "runtime-main.js": "/holdings/static/js/runtime-main.ca4dc17d.js",
     "runtime-main.js.map": "/holdings/static/js/runtime-main.ca4dc17d.js.map",
-    "static/js/2.2f3e2ac1.chunk.js": "/holdings/static/js/2.2f3e2ac1.chunk.js",
-    "static/js/2.2f3e2ac1.chunk.js.map": "/holdings/static/js/2.2f3e2ac1.chunk.js.map",
+    "static/js/2.a5f7ccdd.chunk.js": "/holdings/static/js/2.a5f7ccdd.chunk.js",
+    "static/js/2.a5f7ccdd.chunk.js.map": "/holdings/static/js/2.a5f7ccdd.chunk.js.map",
     "index.html": "/holdings/index.html",
-    "precache-manifest.e742f72bed31c61a836f359fe2d255cb.js": "/holdings/precache-manifest.e742f72bed31c61a836f359fe2d255cb.js",
+    "precache-manifest.d647e57e6c4191b12dee36fc44802f4d.js": "/holdings/precache-manifest.d647e57e6c4191b12dee36fc44802f4d.js",
     "service-worker.js": "/holdings/service-worker.js",
     "static/css/main.5064ea5e.chunk.css.map": "/holdings/static/css/main.5064ea5e.chunk.css.map",
     "static/media/App.css": "/holdings/static/media/Raleway-Regular.9942588a.ttf"
   },
   "entrypoints": [
     "static/js/runtime-main.ca4dc17d.js",
-    "static/js/2.2f3e2ac1.chunk.js",
+    "static/js/2.a5f7ccdd.chunk.js",
     "static/css/main.5064ea5e.chunk.css",
-    "static/js/main.5abbc310.chunk.js"
+    "static/js/main.ef31de20.chunk.js"
   ]
 }
