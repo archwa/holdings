@@ -110,6 +110,7 @@ export class Search extends React.Component {
         onChange={this._handleChange}
         label='Search'
         variant='outlined'
+        type='search'
         style={ styles.textField }
         fullWidth
       />

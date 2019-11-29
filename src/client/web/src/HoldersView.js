@@ -15,11 +15,24 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
+import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
+import TextField from '@material-ui/core/TextField';
+
+const styles = {
+  'textField': {
+    margin: '5px',
+    width: '30%',
+    minWidth: '300px',
+    display: 'inline-block',
+    position: '',
+    bottom: 0
+  },
+};
 
 function TablePaginationActions(props) {
   const useStyles1 = makeStyles(theme => ({
@@ -148,11 +161,10 @@ function EnhancedTableHead(props) {
 }
 
 EnhancedTableHead.propTypes = {
-  classes: PropTypes.object.isRequired,
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
   orderBy: PropTypes.string.isRequired,
-  headCells: PropTypes.object.isRequired,
+  headCells: PropTypes.array.isRequired,
 };
 
 
@@ -185,6 +197,7 @@ export class HoldersView extends React.Component {
       'currentOnly': false,
       'order': 'asc',
       'orderBy': 'name',
+      'filter': '',
     };
   }
 
@@ -232,6 +245,12 @@ export class HoldersView extends React.Component {
       this.setState({
         'currentOnly': event.target.checked
       });  
+    }
+
+    if(type === 'filter') {
+      this.setState({
+        'filter': event.target.value
+      });
     }
   }
 
@@ -372,8 +391,17 @@ export class HoldersView extends React.Component {
       });
     }
 
-    
+    const filterValue = this.state.filter;
 
+    if(!_.isEmpty(filterValue)) {
+      const filterValueLower = _.lowerCase(filterValue.toString());
+      const colKeys = _.map(columns, column => column.id);
+      holders = _.filter(holders, holder => {
+        const slimHolder = _.pick(holder, colKeys);
+        return _.map(_.values(slimHolder), value => _.includes(_.lowerCase(value.toString()), filterValueLower)).some(a => a)
+      });
+    }
+    
     const cusip = this.state.cusip;
     let avgOwnership = 0;
 
@@ -385,6 +413,7 @@ export class HoldersView extends React.Component {
     }
 
     const issuer_name = _.get(this.state, 'issuer_names.0', null);
+
     
     return (
       <>
@@ -392,20 +421,8 @@ export class HoldersView extends React.Component {
         { (!loading && !holders)? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CUSIP "${cusip}"!` }</> :null}
         { loading || !holders? null :
         <>
-        <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', textAlign: 'center', justifyContent: 'center' }}>
           <h1>{ issuer_name }</h1>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right', margin: '10px' }}>
-          <div>
-          Show current holders only <Checkbox
-            checked={currentOnly}
-            onChange={(event) => {
-              this._handleChange(event, 'current_only');
-              handleChangePage(event, 0);
-            }}
-            color="primary"
-          /></div>
-          <div style={{ fontFamily: 'Courier New' }}><strong>Average Ownership Length</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
@@ -424,7 +441,6 @@ export class HoldersView extends React.Component {
                 </TableRow>
               </TableHead> */ }
               <EnhancedTableHead
-                classes={classes}
                 order={order}
                 orderBy={orderBy}
                 onRequestSort={handleRequestSort}
@@ -454,6 +470,35 @@ export class HoldersView extends React.Component {
                   );
                 })}
               </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={ columns.length - 2}>
+                    <TextField
+                      onChange={(event) => this._handleChange(event, 'filter')}
+                      /*label='Filter'*/
+                      /*variant='filled'*/
+                      placeholder='Filter'
+                      type='search'
+                      value={ filterValue }
+                      style={ styles.textField }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell style={{ fontFamily: 'Courier New' }}>
+                    <Checkbox
+                      checked={currentOnly}
+                      onChange={(event) => {
+                        this._handleChange(event, 'current_only');
+                        handleChangePage(event, 0);
+                      }}
+                      color="primary"
+                    /> Show current holders only 
+                  </TableCell>
+                  <TableCell style={{ textAlign: 'right', fontFamily: 'Courier New' }}>
+                    <strong>Average</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           </div>
           <TablePagination

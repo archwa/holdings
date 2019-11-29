@@ -5,7 +5,7 @@
 }
 
 .App {
-  font-family: 'raleway';
+  /*font-family: 'raleway';*/
 }
 
 .App-logo {
@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  font-family: 'raleway';
+  /*font-family: 'raleway';*/
 }
 
 .App-body {
@@ -27,7 +27,7 @@
   flex-direction: column;
   text-align: center;
   justify-content: center;
-  font-family: 'raleway';
+  /*font-family: 'raleway';*/
 }
 
 .Welcome {

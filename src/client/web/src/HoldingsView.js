@@ -15,13 +15,26 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
+import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
+import TextField from '@material-ui/core/TextField';
 
 // need CIK
+
+const styles = {
+  'textField': {
+    margin: '5px',
+    width: '30%',
+    minWidth: '300px',
+    display: 'inline-block',
+    position: '',
+    bottom: 0
+  },
+};
 
 function TablePaginationActions(props) {
     const useStyles1 = makeStyles(theme => ({
@@ -150,7 +163,6 @@ function EnhancedTableHead(props) {
 }
 
 EnhancedTableHead.propTypes = {
-  classes: PropTypes.object.isRequired,
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
   orderBy: PropTypes.string.isRequired,
@@ -186,6 +198,7 @@ export class HoldingsView extends React.Component {
       'currentOnly': false,
       'order': 'asc',
       'orderBy': 'name',
+      'filter': '',
     };
   }
 
@@ -233,6 +246,12 @@ export class HoldingsView extends React.Component {
       this.setState({
         'currentOnly': event.target.checked
       });  
+    }
+
+    if(type === 'filter') {
+      this.setState({
+        'filter': event.target.value
+      });
     }
   }
 
@@ -386,6 +405,17 @@ export class HoldingsView extends React.Component {
       avgOwnership = Math.round(avgOwnership * 1000) / 1000;
     }
 
+    const filterValue = this.state.filter;
+
+    if(!_.isEmpty(filterValue)) {
+      const filterValueLower = _.lowerCase(filterValue.toString());
+      const colKeys = _.map(columns, column => column.id);
+      holdings = _.filter(holdings, holding => {
+        const slimHolding = _.pick(holding, colKeys);
+        return _.map(_.values(slimHolding), value => _.includes(_.lowerCase(value.toString()), filterValueLower)).some(a => a)
+      });
+    }
+
     const filer_name = _.get(this.state, 'filer_names.0', null);
     
     return (
@@ -394,20 +424,8 @@ export class HoldingsView extends React.Component {
         { (!loading && !holdings)? <><div style={{ minHeight: '30vh' }}></div>{ `No results for requested CIK "${cik}"!` }</> :null}
         { loading || !holdings? null :
         <>
-        <div style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'raleway'}}>
+        <div style={{ display: 'block', width: '100%', textAlign: 'center' }}>
           <h1>{ filer_name }</h1>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right', margin: '10px' }}>
-          <div>
-          Show current holdings only <Checkbox
-            checked={currentOnly}
-            onChange={(event) => {
-              this._handleChange(event, 'current_only');
-              handleChangePage(event, 0);
-            }}
-            color="primary"
-          /></div>
-          <div style={{ fontFamily: 'Courier New' }}><strong>Average Ownership Length</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)</div>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
           <div className={classes.tableWrapper}>
@@ -456,6 +474,35 @@ export class HoldingsView extends React.Component {
                   );
                 })}
               </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={ columns.length - 2}>
+                    <TextField
+                      onChange={(event) => this._handleChange(event, 'filter')}
+                      /*label='Filter'*/
+                      /*variant='filled'*/
+                      placeholder='Filter'
+                      type='search'
+                      value={ filterValue }
+                      style={ styles.textField }
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell style={{ fontFamily: 'Courier New' }}>
+                    <Checkbox
+                      checked={currentOnly}
+                      onChange={(event) => {
+                        this._handleChange(event, 'current_only');
+                        handleChangePage(event, 0);
+                      }}
+                      color="primary"
+                    /> Show current holdings only 
+                  </TableCell>
+                  <TableCell style={{ textAlign: 'right', fontFamily: 'Courier New' }}>
+                    <strong>Average</strong>: { avgOwnership } quarters ({Math.round(1000 * avgOwnership / 4)/1000} years)
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           </div>
           <TablePagination
