@@ -62,6 +62,10 @@ setup:
 		printf "> File \"$(DEP_FILE)\" either does not exist or is empty, so I (re)created one for you.\n"; \
     printf "> Add dependencies using \"dep add <DEPENDENCY_KEYWORD>\".\n"; \
 	fi
+	@printf "\n[$@] Switching to project version of Node.js ...\n"
+	[ -s "$(HOME)/.nvm/nvm.sh" ] && . "$(HOME)/.nvm/nvm.sh" && nvm use
+	@printf "\n[$@] Installing Node.js modules listed in src/client/web/package.json ...\n"
+	cd src/client/web && npm install
 	@printf "\nTo complete setup and enter the development environment, run \"source activate\".\n"
 	@printf "To exit the development environment, run \"deactivate\".\n"
 
@@ -70,6 +74,8 @@ clean:
 	rm -rf $(VENV_NAME) activate
 	@printf "\n[$@] Removing all __pycache__ dirs (if exists) ...\n"
 	find . -depth -type d -path ./$(VENV_NAME) -prune -o -name __pycache__ -exec rm -rf {} \;
+	@printf "\n[$@] Removing all node_modules/ dirs (if exists) ...\n"
+	rm -rf src/client/web/node_modules
 	@printf "\nCleaning complete.\n"
 
 clean-pycache:
