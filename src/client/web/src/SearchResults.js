@@ -16,69 +16,70 @@ export class SearchResults extends React.Component {
     this._searchCompany = this._searchCompany.bind(this);
     this._searchSymbol = this._searchSymbol.bind(this);
 
-    const initialCompanySearchFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'company', null);
-    const initialSymbolSearchFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'symbol', null);
+    const initialSearchFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'q', null);
+    const fromSearch = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'fromSearch', false) === 'true'? true :false;
     
     this.state = {
-      'companyQuery': initialCompanySearchFromQuery,
-      'symbolQuery': initialSymbolSearchFromQuery,
+      'searchQuery': initialSearchFromQuery,
       'companyResults': null,
       'symbolResults': null,
       'loading': true,
+      'loadingCompanyResults': false,
+      'loadingSymbolResults': false,
       'redirect': {
         go: false,
         location: '/',
       },
+      'fromSearch': fromSearch
     };
   }
 
   componentDidMount() {
     const stitchInitialized = this.props.stitchInitialized;
-    const companyQuery = this.state.companyQuery;
-    const symbolQuery = this.state.symbolQuery;
+    const searchQuery = this.state.searchQuery;
 
-    if(stitchInitialized && companyQuery) {
-      this._searchCompany(companyQuery);
+    if(stitchInitialized && searchQuery) {
+      this._searchCompany(searchQuery);
+      this._searchSymbol(searchQuery);
     }
 
-    if(stitchInitialized && symbolQuery) {
-      this._searchSymbol(symbolQuery);
-    }
-
-    if(stitchInitialized && !companyQuery && !symbolQuery && this.state.loading) {
+    if(stitchInitialized && !searchQuery && this.state.loading) {
       this.setState({ loading: false });
     }
   }
 
   componentDidUpdate(prevProps) {
     const stitchInitialized = this.props.stitchInitialized;
-    const companySearch = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'company', null);
-    const oldCompanySearch = _.get(queryString.parse(_.get(prevProps, 'location.search', null)), 'company', null);
-    const symbolSearch = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'symbol', null);
-    const oldSymbolSearch = _.get(queryString.parse(_.get(prevProps, 'location.search', null)), 'symbol', null);
+    const search = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'q', null);
+    const oldSearch = _.get(queryString.parse(_.get(prevProps, 'location.search', null)), 'q', null);
+
+    const fromSearch = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'fromSearch', false) === 'true'? true :false;
+    const oldFromSearch = _.get(queryString.parse(_.get(prevProps, 'location.search', null)), 'fromSearch', false) === 'true'? true :false;
+
+    
 
     // clear old searches
-    if(companySearch !== oldCompanySearch) {
-      this.setState({ 'companyQuery': companySearch, 'companyResults': null });
+    if(search !== oldSearch) {
+      this.setState({
+        'searchQuery': search,
+        'companyResults': null,
+        'symbolResults': null
+      });
     }
 
-    if(symbolSearch !== oldSymbolSearch) {
-      this.setState({ 'symbolQuery': symbolSearch, 'symbolResults': null });
+    if(fromSearch !== oldFromSearch) {
+      this.setState({ 'fromSearch': fromSearch });
     }
-
 
     // perform new searches
-    if(stitchInitialized && companySearch && companySearch !== oldCompanySearch) {
-      this._searchCompany(companySearch);
-    }
-    
-    if(stitchInitialized && symbolSearch && symbolSearch !== oldSymbolSearch) {
-      this._searchSymbol(symbolSearch);
+    if(stitchInitialized && search && search !== oldSearch) {
+      this._searchCompany(search);
+      this._searchSymbol(search);
     }
   }
 
   _searchCompany(q) {
-    this.setState({ loading: true });
+    this.setState({ loading: true, loadingCompanyResults: true });
     this.stitch.callFunction('searchForCompany', [ q ])
       .then(res => {
         if(res.data.filerSearch.status < 0) {
@@ -166,34 +167,41 @@ export class SearchResults extends React.Component {
           const company = _.first(companyResultsValues);
           const companyKeys = _.keys(company);
 
-          if(companyKeys.length === 1) {
+          if(companyKeys.length === 1 && this.state.fromSearch) {
             const loc = _.first(companyKeys).toString();
             const id = _.get(company, loc).toString();
 
+            const newQuery = {
+              'autoRedir': true,
+              q
+            };
+
+            const qs = queryString.stringify(newQuery);
+
             let newRedirect = { ...this.state.redirect };
-            newRedirect.location = ('/' + loc + '/' + id);
+            newRedirect.location = '/' + loc + '/' + id + (qs? '?' + qs :'');
             newRedirect.go = true;
 
             this.setState({ redirect: newRedirect });  
           }
 
           else {
-            this.setState({ loading: false, companyResults });
+            this.setState({ loading: false, loadingCompanyResults: false, companyResults });
           }
         }
 
         else {
-          this.setState({ loading: false, companyResults });
+          this.setState({ loading: false, loadingCompanyResults: false, companyResults });
         }
       })
       .catch(err => {
         console.error(err);
-        this.setState({ loading: false });
+        this.setState({ loading: false, loadingCompanyResults: false });
       });
   }
 
   _searchSymbol(q) {
-    this.setState({ loading: true });
+    this.setState({ loading: true, loadingSymbolResults: true });
     this.stitch.callFunction('searchForSymbol', [ q ])
       .then(res => {
         // no results
@@ -229,68 +237,65 @@ export class SearchResults extends React.Component {
             holders: holders? _.get(holders, 'cusip6', null) :null,
           };
 
-          if(symbolResults.holdings && !symbolResults.holders) {
+          if(symbolResults.holdings && !symbolResults.holders && this.state.fromSearch) {
+            const newQuery = {
+              'autoRedir': true,
+              q
+            };
+
+            const qs = queryString.stringify(newQuery);
+
             let newRedirect = { ...this.state.redirect };
-            newRedirect.location = ('/holdings/' + symbolResults.holdings.toString());
+            newRedirect.location = ('/holdings/' + symbolResults.holdings.toString() + (qs? '?' + qs :''));
             newRedirect.go = true;
 
             this.setState({ redirect: newRedirect });  
           }
           
-          else if(!symbolResults.holdings && symbolResults.holders) {
+          else if(!symbolResults.holdings && symbolResults.holders && this.state.fromSearch) {
+            const newQuery = {
+              'autoRedir': true,
+              q
+            };
+
+            const qs = queryString.stringify(newQuery);
+
             let newRedirect = { ...this.state.redirect };
-            newRedirect.location = ('/holders/' + symbolResults.holders.toString());
+            newRedirect.location = ('/holders/' + symbolResults.holders.toString() + (qs? '?' + qs :''));
             newRedirect.go = true;
 
             this.setState({ redirect: newRedirect });  
           }
           
           else {
-            this.setState({ loading: false, symbolResults });
+            this.setState({ loading: false, loadingSymbolResults: false, symbolResults });
           }
         }
       })
       .catch(err => {
         console.error(err);
-        this.setState({ loading: false });
+        this.setState({ loading: false, loadingSymbolResults: false });
       });
   }
 
   render() {
-    const loading = this.state.loading;
+    const loading = this.state.loading || this.state.loadingCompanyResults || this.state.loadingSymbolResults;
     const companyResults = this.state.companyResults;
     const symbolResults = this.state.symbolResults;
-    const companyQuery = this.state.companyQuery;
-    const symbolQuery = this.state.symbolQuery;
+    const searchQuery = this.state.searchQuery;
 
     const redirect = this.state.redirect.go;
     const location = this.state.redirect.location;
 
     return (<div>
       { redirect? <Redirect to={ location } /> :null }
-      { (!loading && !companyQuery && !symbolQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
-      { (!loading && (companyQuery || symbolQuery) && _.isEmpty(companyResults) && _.isEmpty(symbolResults))?
+      { (!loading && !searchQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
+      { (!loading && searchQuery && _.isEmpty(companyResults) && _.isEmpty(symbolResults))?
         <>
           <div style={{ minHeight: '30vh' }}></div>
-          {
-            (() => {
-              let noResults = 'No results';
-              if(companyQuery) {
-                noResults += ` for company query "${companyQuery}"`
-              }
-              if(companyQuery && symbolQuery) {
-                noResults += ' or';
-              }
-              if(symbolQuery) {
-                noResults += ` for symbol query "${symbolQuery}"`;
-              }
-              noResults += '.';
-
-              return noResults;
-            })()
-          }
+          { `No results for search query "${searchQuery}".` }
         </> :null}
-      { (loading && (companyQuery || symbolQuery))? <><div style={{ minHeight: '30vh' }}></div>{ `One moment please ...` }</> :null}
+      { (loading && searchQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `One moment please ...` }</> :null}
       { (!_.isEmpty(companyResults) && !loading)?
       <div style={{ textAlign: 'left', margin: '10px' }}>
         <h2>Company Results</h2>
@@ -320,7 +325,7 @@ export class SearchResults extends React.Component {
         </ul>
       </div>
       :null }
-      { (!_.isEmpty(symbolResults) && !loading)?
+      { (symbolResults && (!_.isEmpty(symbolResults.holdings) || !_.isEmpty(symbolResults.holders)) && !loading)?
       <div style={{ textAlign: 'left', margin: '10px' }}>
         <h2>Symbol Results</h2>
         <ul>

@@ -185,6 +185,8 @@ export class HoldingsView extends React.Component {
     const initialCikFromPath = _.get(this.props, 'match.params.cik', null);
     const initialCikFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'cik', null);
     const initialCik = initialCikFromPath? initialCikFromPath :initialCikFromQuery;
+    const autoRedir = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'autoRedir', false);
+    const query = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'q', null);
 
     // initialize state
     this.state = {
@@ -199,6 +201,8 @@ export class HoldingsView extends React.Component {
       'order': 'desc',
       'orderBy': 'ownership_length',
       'filter': '',
+      'autoRedir': autoRedir,
+      'query': query,
     };
   }
 
@@ -416,6 +420,14 @@ export class HoldingsView extends React.Component {
     }
 
     const filer_name = _.get(this.state, 'filer_names.0', null);
+
+    const autoRedir = this.state.autoRedir;
+    const query = this.state.query;
+    const parsedQuery = {
+      'q': query,
+      'fromSearch': false
+    };
+    const qs = queryString.stringify(parsedQuery);
     
     return (
       <>
@@ -424,6 +436,10 @@ export class HoldingsView extends React.Component {
         { loading || !holdings? null :
         <>
         <div style={{ display: 'block', width: '100%', textAlign: 'center' }}>
+          { autoRedir && query?
+            <div>
+              You were automatically redirected from search.  Click <Link style={{ textDecoration: 'none', color: 'blue' }} to={ '/search?' + qs }>here</Link> to view full results.
+            </div> :null }
           <h1>{ filer_name }</h1>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>

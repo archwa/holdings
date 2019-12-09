@@ -184,6 +184,8 @@ export class HoldersView extends React.Component {
     const initialCusipFromPath = _.get(this.props, 'match.params.cusip', null);
     const initialCusipFromQuery = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'cusip', null);
     const initialCusip = initialCusipFromPath? initialCusipFromPath :initialCusipFromQuery;
+    const autoRedir = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'autoRedir', false);
+    const query = _.get(queryString.parse(_.get(this.props, 'location.search', null)), 'q', null);
 
     // initialize state
     this.state = {
@@ -198,6 +200,8 @@ export class HoldersView extends React.Component {
       'order': 'desc',
       'orderBy': 'ownership_length',
       'filter': '',
+      'autoRedir': autoRedir,
+      'query': query,
     };
   }
 
@@ -414,6 +418,15 @@ export class HoldersView extends React.Component {
 
     const issuer_name = _.get(this.state, 'issuer_names.0', null);
 
+    const autoRedir = this.state.autoRedir;
+    const query = this.state.query;
+    const parsedQuery = {
+      'q': query,
+      'fromSearch': false
+    };
+
+    console.log(parsedQuery);
+    const qs = queryString.stringify(parsedQuery);
     
     return (
       <>
@@ -422,6 +435,10 @@ export class HoldersView extends React.Component {
         { loading || !holders? null :
         <>
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', textAlign: 'center', justifyContent: 'center' }}>
+          { autoRedir && query?
+            <div>
+              You were automatically redirected from search.  Click <Link style={{ textDecoration: 'none', color: 'blue' }} to={ '/search?' + qs }>here</Link> to view full results.
+            </div> :null }
           <h1>{ issuer_name }</h1>
         </div>
         <Paper className={classes.root} style={{ display: 'block', width: '100%' }}>
