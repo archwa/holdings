@@ -425,7 +425,6 @@ export class HoldersView extends React.Component {
       'fromSearch': false
     };
 
-    console.log(parsedQuery);
     const qs = queryString.stringify(parsedQuery);
     
     return (

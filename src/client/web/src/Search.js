@@ -76,7 +76,6 @@ export class Search extends React.Component {
 
     let newRedirect = { ...this.state.redirect };
     newRedirect.location = '/search' + (qs? '?' + qs :'');
-    console.log(newRedirect);
     newRedirect.go = true;
 
     this.setState({ redirect: newRedirect });  
