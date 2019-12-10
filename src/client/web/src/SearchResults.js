@@ -287,10 +287,12 @@ export class SearchResults extends React.Component {
     const redirect = this.state.redirect.go;
     const location = this.state.redirect.location;
 
+    const symResFlag = symbolResults && (!_.isEmpty(symbolResults.holdings) || !_.isEmpty(symbolResults.holders));
+
     return (<div>
       { redirect? <Redirect to={ location } /> :null }
       { (!loading && !searchQuery)? <><div style={{ minHeight: '30vh' }}></div>{ `Please provide a search query.` }</> :null}
-      { (!loading && searchQuery && _.isEmpty(companyResults) && _.isEmpty(symbolResults))?
+      { (!loading && searchQuery && _.isEmpty(companyResults) && !symResFlag)?
         <>
           <div style={{ minHeight: '30vh' }}></div>
           { `No results for search query "${searchQuery}".` }
@@ -325,7 +327,7 @@ export class SearchResults extends React.Component {
         </ul>
       </div>
       :null }
-      { (symbolResults && (!_.isEmpty(symbolResults.holdings) || !_.isEmpty(symbolResults.holders)) && !loading)?
+      { (symResFlag && !loading)?
       <div style={{ textAlign: 'left', margin: '10px' }}>
         <h2>Symbol Results</h2>
         <ul>
