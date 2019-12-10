@@ -1,6 +1,12 @@
 import React from 'react';
 import './App.css';
 import { blue } from '@material-ui/core/colors';
+import bcrypt from 'bcryptjs';
+
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import { withStyles } from '@material-ui/core/styles';
+
 
 import {
   HashRouter as Router,
@@ -27,6 +33,36 @@ import { StitchController } from './stitch';
 import HomeIcon from '@material-ui/icons/Home';
 
 //import Logo from './media/assets/images/gghc.png';
+const ColorButton = withStyles(theme => ({
+  root: {
+    color: 'white',
+    backgroundColor: blue[500],
+    '&:hover': {
+      backgroundColor: blue[700],
+    },
+  },
+}))(Button);
+
+const styles = {
+  'container': {
+    position: 'relative',
+    margin: '10px',
+    textAlign: 'center',
+    justifyContent: 'center',
+  },
+  'textField': {
+    margin: '5px',
+    width: '50%',
+    minWidth: '300px',
+    display: 'inline-block',
+  },
+  'button': {
+    display: 'inline-block',
+    //height: '100%',
+  }
+};
+
+const authHash = process.env.REACT_APP_AUTH_HASH;
 
 class App extends React.Component {
   constructor(props) {
@@ -39,7 +75,9 @@ class App extends React.Component {
         height: 0
       },
       'stitchInitialized': false,
-      'loading': true
+      'loading': true,
+      'authenticated': false,
+      'value': '',
     };
 
     // intantiate Stitch controller
@@ -47,6 +85,14 @@ class App extends React.Component {
 
     // bind non-React functions
     this._updateWindowDimensions = this._updateWindowDimensions.bind(this);
+    this._authenticate = this._authenticate.bind(this);
+    this._handleChange = this._handleChange.bind(this);
+  }
+
+  _handleChange(event) {
+    this.setState({
+      'value': event.target.value
+    });  
   }
 
   _updateWindowDimensions() {
@@ -57,7 +103,13 @@ class App extends React.Component {
     this._updateWindowDimensions();
     window.addEventListener('resize', this._updateWindowDimensions);
 
-    console.log('Initializing Stitch ...');
+    // set up auth (not secure, for many reasons)
+    const authed = localStorage.getItem('holdings_app_authed');
+    
+    if(authed) {
+      this.setState({ 'authenticated': true });
+    }
+
     this.stitch.init()
     .then(err => {
       if(!err) {
@@ -81,22 +133,59 @@ class App extends React.Component {
         'stitchInitialized': false,
         'loading': false
       });
-    });
+    })
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this._updateWindowDimensions);
   }
 
+  _authenticate() {
+    const pw = this.state.value;
+    
+    bcrypt.compare(pw, authHash)
+      .then(res => {
+        if(res) {
+          alert('Success!');
+          localStorage.setItem('holdings_app_authed', true);
+          this.setState({ 'authenticated': true });
+        }
+
+        else {
+          alert('Incorrect credentials.  Please try again.');
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
   render() {
+    const authenticated = this.state.authenticated;
+    
     return (
       <Router>
         <div className="App">
-          {/*<div className="App-header">
-            <h1>Holdings Analysis</h1>
-          </div>*/}
-
           <div className="App-body">
+            { !authenticated? 
+              <div style={{
+                'verticalAlign': 'middle',
+                'height': '100px',
+                'lineHeight': '100px',
+                'whiteSpace': 'nowrap',
+              }}>
+                <form onSubmit={ this._authenticate }>
+                  <TextField
+                    onChange={this._handleChange}
+                    type='password'
+                    variant='outlined'
+                    style={ styles.textField }
+                    fullWidth
+                  />
+                  <ColorButton variant='contained' onClick={ this._authenticate } style={ styles.button }>
+                    Authenticate
+                  </ColorButton>
+                </form>
+              </div>
+              :<>
             { !this.state.stitchInitialized && !this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Error connecting to MongoDB Stitch!</> :null }
             { !this.state.stitchInitialized && this.state.loading? <><div style={{ minHeight: '30vh' }}></div>Connecting to MongoDB Stitch server ...</>:<>
             <Link to='/' style={{ zIndex: 10, width: 32, height: 32, position: 'absolute', top: 5, left: 5 }}><HomeIcon
@@ -165,8 +254,9 @@ class App extends React.Component {
               />
             </Switch>
             </>}
-          </div>
 
+            </>}
+          </div>
         </div>
       </Router>
     );
