@@ -76,7 +76,7 @@ class App extends React.Component {
       },
       'stitchInitialized': false,
       'loading': true,
-      'authorized': false,
+      'authenticated': false,
       'value': '',
     };
 
@@ -85,7 +85,7 @@ class App extends React.Component {
 
     // bind non-React functions
     this._updateWindowDimensions = this._updateWindowDimensions.bind(this);
-    this._authorize = this._authorize.bind(this);
+    this._authenticate = this._authenticate.bind(this);
     this._handleChange = this._handleChange.bind(this);
   }
 
@@ -107,7 +107,7 @@ class App extends React.Component {
     const authed = localStorage.getItem('holdings_app_authed');
     
     if(authed) {
-      this.setState({ 'authorized': true });
+      this.setState({ 'authenticated': true });
     }
 
     this.stitch.init()
@@ -140,7 +140,7 @@ class App extends React.Component {
     window.removeEventListener('resize', this._updateWindowDimensions);
   }
 
-  _authorize() {
+  _authenticate() {
     const pw = this.state.value;
     
     bcrypt.compare(pw, authHash)
@@ -148,7 +148,7 @@ class App extends React.Component {
         if(res) {
           alert('Success!');
           localStorage.setItem('holdings_app_authed', true);
-          this.setState({ 'authorized': true });
+          this.setState({ 'authenticated': true });
         }
 
         else {
@@ -159,20 +159,20 @@ class App extends React.Component {
   }
 
   render() {
-    const authorized = this.state.authorized;
+    const authenticated = this.state.authenticated;
     
     return (
       <Router>
         <div className="App">
           <div className="App-body">
-            { !authorized? 
+            { !authenticated? 
               <div style={{
                 'verticalAlign': 'middle',
                 'height': '100px',
                 'lineHeight': '100px',
                 'whiteSpace': 'nowrap',
               }}>
-                <form onSubmit={ this._authorize }>
+                <form onSubmit={ this._authenticate }>
                   <TextField
                     onChange={this._handleChange}
                     type='password'
@@ -180,8 +180,8 @@ class App extends React.Component {
                     style={ styles.textField }
                     fullWidth
                   />
-                  <ColorButton variant='contained' onClick={ this._authorize } style={ styles.button }>
-                    Authorize
+                  <ColorButton variant='contained' onClick={ this._authenticate } style={ styles.button }>
+                    Authenticate
                   </ColorButton>
                 </form>
               </div>
