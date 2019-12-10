@@ -17,9 +17,9 @@ exports = function(q){
           data: 0
         }];
       }
-      
+      console.log(JSON.stringify(resSymbols));
       const symbol = resSymbols[0];
-      const name = symbol.names[0].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ");
+      const name = symbol.names? symbol.names[0].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ") :symbol.symbol;
       
       // perform searches (if applicable)
       const filerSearch = symbol.ciks && symbol.ciks.length?
