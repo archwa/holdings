@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/holdings/static/css/main.5064ea5e.chunk.css",
-    "main.js": "/holdings/static/js/main.8ad02aab.chunk.js",
-    "main.js.map": "/holdings/static/js/main.8ad02aab.chunk.js.map",
+    "main.js": "/holdings/static/js/main.a42aa052.chunk.js",
+    "main.js.map": "/holdings/static/js/main.a42aa052.chunk.js.map",
     "runtime-main.js": "/holdings/static/js/runtime-main.ca4dc17d.js",
     "runtime-main.js.map": "/holdings/static/js/runtime-main.ca4dc17d.js.map",
     "static/js/2.56a8f303.chunk.js": "/holdings/static/js/2.56a8f303.chunk.js",
     "static/js/2.56a8f303.chunk.js.map": "/holdings/static/js/2.56a8f303.chunk.js.map",
     "index.html": "/holdings/index.html",
-    "precache-manifest.a229480feac8ec45ba07995e5b34a8a8.js": "/holdings/precache-manifest.a229480feac8ec45ba07995e5b34a8a8.js",
+    "precache-manifest.ede07ae319072e6c3d9db6a5e28217bb.js": "/holdings/precache-manifest.ede07ae319072e6c3d9db6a5e28217bb.js",
     "service-worker.js": "/holdings/service-worker.js",
     "static/css/main.5064ea5e.chunk.css.map": "/holdings/static/css/main.5064ea5e.chunk.css.map",
     "static/media/App.css": "/holdings/static/media/Raleway-Regular.9942588a.ttf"
@@ -17,6 +17,6 @@
     "static/js/runtime-main.ca4dc17d.js",
     "static/js/2.56a8f303.chunk.js",
     "static/css/main.5064ea5e.chunk.css",
-    "static/js/main.8ad02aab.chunk.js"
+    "static/js/main.a42aa052.chunk.js"
   ]
 }
