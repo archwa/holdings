@@ -5,9 +5,6 @@ use MongoDB;
 
 # create a client
 my $client = MongoDB::MongoClient->new(
-  host => $ENV{'MONGODB_PROTOCOL'} . '://' . $ENV{'MONGODB_HOST'},
-  username => $ENV{'MONGODB_USER'},
-  password => $ENV{'MONGODB_PASS'},
 );
 
 # connection string
@@ -15,15 +12,19 @@ my $db = $client->get_database($ENV{'FILINGS_DB'});
 
 my $colls = $db->list_collections();
 # print Dumper $colls;
-my $coll_periods = $db->get_collection('holdings');
-my $coll_funds = $db->get_collection('filers');
+my $coll_periods = $db->get_collection('holdings_staging');
+my $coll_funds = $db->get_collection('filers_staging');
  
 # quarters mappings
 my $quarters = {
-  '0327'=>'q1','0328'=>'q1','0629'=>'q1','0330'=>'q1','0331'=>'q1', 
-  '0627'=>'q2','0628'=>'q2','0629'=>'q2','0630'=>'q2',
-  '0927'=>'q3','0928'=>'q3','0930'=>'q3','0930'=>'q3', 
-  '1227'=>'q4','1228'=>'q4','1229'=>'q4','1230'=>'q4','1231'=>'q4'
+  '01'=>'q1', '02'=>'q1', '03'=>'q1',
+  '04'=>'q2', '05'=>'q2', '06'=>'q2',
+  '07'=>'q3', '08'=>'q3', '09'=>'q3',
+  '10'=>'q4', '11'=>'q4', '12'=>'q4'
+  #'0327'=>'q1','0328'=>'q1','0629'=>'q1','0330'=>'q1','0331'=>'q1', 
+  #'0627'=>'q2','0628'=>'q2','0629'=>'q2','0630'=>'q2',
+  #'0927'=>'q3','0928'=>'q3','0930'=>'q3','0930'=>'q3', 
+  #'1227'=>'q4','1228'=>'q4','1229'=>'q4','1230'=>'q4','1231'=>'q4'
 };
 
 # create an array of all quarters of format "YYYYqQ"
@@ -50,7 +51,7 @@ sub parse_13f {
   while (<$fh>) {
     if (/CONFORMED PERIOD OF REPORT:\s+(\d+)/) {
       $period = $1;
-      $period = substr ($period, 0, 4) . $quarters->{substr ($period, 4, 4)};
+      $period = substr ($period, 0, 4) . $quarters->{substr ($period, 4, 2)};
     } elsif (/<nameOfIssuer>([^<]+)/) {
       $issuer = $1;
     } elsif (/<cusip>([^<]+)/) {
@@ -61,7 +62,7 @@ sub parse_13f {
       $companies->{$cusip}->{'issuer'} = $issuer;
     } elsif (/^<S>/) { 
       $text = 1;
-    } elsif ($text && /.+COM\s+([^\s]{9})/) {
+    } elsif ($text && /.*([0-9]{3}[a-zA-Z0-9]{2}[a-zA-Z0-9*@#]{3}[0-9]?).*/) {
       my $cusip = $1;
       $cusip .= '0' while 9 > length $cusip;
 #      print "   cusip from text $cusip\n";
@@ -79,10 +80,13 @@ sub get_13f_list {
   my $companies = {};
   my $fn  = "data/$cik.idx";
 
+  # create data directory
+  `mkdir -p data`;
+
   if (! -e $fn) {
     my $url = 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' . $cik . '&type=13f&dateb=&owner=exclude&count=1000';
-    my $cmd = "curl -o '$fn' '$url'";
-    # print $cmd;
+    my $cmd = "curl --connect-timeout 60 --retry 100 --retry-delay 5 --retry-max-time 300 --retry-connrefused -o '$fn' '$url'";
+    print $cmd;
     `$cmd`;
   }
 
@@ -101,14 +105,24 @@ sub get_13f_list {
       # print "$url to $of in dir $dir\n"; 
       if (! -e $of) {
         `mkdir -p $dir`;
-        `curl -o '$of' '$url'`;
+        my $cmd = "curl --connect-timeout 60 --retry 100 --retry-delay 5 --retry-max-time 300 --retry-connrefused -o '$of' '$url'";
+        print $cmd;
+        `$cmd`;
       }
       parse_13f ($of, $data, $companies);
+      `rm -f $of`;
+      `rm -rf $dir`;
     }
   }
   close ($fh);
 
+  # remove data directory
+  `rm -rf data`;
+
   my @cusips = sort keys %$data;
+  my @documents = ();
+  my @docs_text = ();
+
   for my $c (@cusips) {
     my $quarters = $data->{$c};
     my $s = "";
@@ -128,11 +142,20 @@ sub get_13f_list {
       $p =~ s/,$//;
       my @ps = split (/,/, $p);
       my $json = "{ cik: \"" . sprintf('%010d', int($cik)) . "\", cusip6: \"" . substr(uc($c), 0, 6) . "\", cusip9: \"" . uc($c) . "\", ownership_length: " . (1+$#ps) . ", from: { year: " . substr ($ps[0], 0, 4) . ", quarter: " . substr ($ps[0], 5, 1) . " }, to: { year: " . substr ($ps[$#ps], 0, 4) . ", quarter: " . substr ($ps[$#ps], 5, 1) . " } }";
-      print "PERIODS: Trying to insert $json\n";
-      $coll_periods->insert_one ({ cik => sprintf('%010d', int($cik)), cusip6 => substr(uc($c), 0, 6), cusip9 => uc($c), ownership_length => (1+$#ps), from => { year => int(substr ($ps[0], 0, 4)), quarter => int(substr ($ps[0], 5, 1))}, to => { year => int(substr ($ps[$#ps], 0, 4)), quarter => int(substr ($ps[$#ps], 5, 1)) } });
+      push (@docs_text, $json);
+      #print "PERIODS: Trying to insert $json\n";
+      push (@documents, { cik => sprintf('%010d', int($cik)), cusip6 => substr(uc($c), 0, 6), cusip9 => uc($c), ownership_length => (1+$#ps), from => { year => int(substr ($ps[0], 0, 4)), quarter => int(substr ($ps[0], 5, 1))}, to => { year => int(substr ($ps[$#ps], 0, 4)), quarter => int(substr ($ps[$#ps], 5, 1)) } });
       #$coll_companies->insert_one ({ cusip => $c, name => $companies->{$c}->{'issuer'} });
     }
   } 
+  
+  print "PERIODS: Trying to insert in bulk:\n";
+
+  foreach(@docs_text) {
+    print "$_\n";
+  }
+
+  $coll_periods->insert_many([ @documents ], { ordered => 0 });
 }
 
 sub add_cik_mapping {
@@ -148,14 +171,10 @@ sub add_cik_mapping {
 #    print Dumper $e;
 #}
 
-# create data/ directory if none exists
-print "Creating \"data/\" directory if none exists ...";
-`mkdir -p data`;
-
 while (<>) {
   chomp;
-  if (/13F-HR/ && !(/bank|corp/i) && /\s([0-9]{7})\s/) {
-    if (/^13F-HR\s+([A-Za-z0-9\s\,\-\.]+)\s([0-9]+)\s/) {
+  if (/13F-HR/ && !(/bank|corp/i) && /\s([0-9]+)\s/) {
+    if (/^13F-HR\s+([A-Za-z0-9\s\,\-\.\/]+)\s([0-9]+)\s/) {
       my ($fund, $cik) = ($1, $2);
       $fund =~ s/\s+/ /g;
       $fund =~ s/\s$//;
