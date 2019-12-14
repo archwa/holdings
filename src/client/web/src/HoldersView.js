@@ -377,7 +377,7 @@ export class HoldersView extends React.Component {
 
     const date = new Date();
     const currentYear = date.getFullYear();
-    const currentQuarter = ~~((date.getMonth() + 1) / 3) + 1;
+    const currentQuarter = ~~((date.getMonth()) / 3) + 1;
 
     const currentOnly = this.state.currentOnly;
 
