@@ -13,9 +13,9 @@ db_client = db_module().client
 db = db_client[db_name]
 
 
-def process_sec_ticker_text():
+def process_sec_ticker_text(url):
   # download SEC ticker file
-  response = requests.get(sec_ticker_text_data_url)
+  response = requests.get(url)
   data = response.text
 
   sec_ticker_re = re.compile(r'^(.+)\s+([0-9]+)')
@@ -77,9 +77,9 @@ def process_sec_ticker_text():
     print('Success! Imported all SEC ticker data.\n')
 
 
-def process_sec_company_ticker_json():
+def process_sec_company_ticker_json(url):
   # download SEC company ticker JSON data
-  response = requests.get(sec_company_ticker_json_data_url)
+  response = requests.get(url)
   data = response.text
   data = json.loads(data)
 
@@ -161,7 +161,7 @@ def check_and_update_sec_ticker_text(metadata):
   db_last_modified = metadata['data_sources']['sec_ticker_text']['lastModified'].replace(tzinfo=pytz.UTC)
 
   if last_modified > db_last_modified:
-    process_sec_ticker_text()
+    process_sec_ticker_text(sec_ticker_text_data_url)
     db.metadata.update_one({ 'data_sources': { '$exists': True }}, {
       '$set': { 'data_sources.sec_ticker_text.lastModified': last_modified },
       '$currentDate': {
@@ -179,7 +179,7 @@ def check_and_update_sec_company_ticker_json(metadata):
   db_last_modified = metadata['data_sources']['sec_company_ticker_json']['lastModified'].replace(tzinfo=pytz.UTC)
 
   if last_modified > db_last_modified:
-    process_sec_company_ticker_json()
+    process_sec_company_ticker_json(sec_company_ticker_json_data_url)
     db.metadata.update_one({ 'data_sources': { '$exists': True }}, {
       '$set': { 'data_sources.sec_company_ticker_json.lastModified': last_modified },
       '$currentDate': {
