@@ -115,7 +115,7 @@ def process_form_13f_hr(options):
       year = int(date[0:4])
       quarter = (int(date[4:6]) - 1) // 3 + 1
 
-    if cusip_match:
+    if cusip_match and year and quarter:
       cusip_text = cusip_match.group(1)
       cusip_text = cusip_text.ljust(9, '0').upper() # make 9 digit cusip
 
