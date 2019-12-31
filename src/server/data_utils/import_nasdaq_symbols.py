@@ -14,8 +14,6 @@ db_name = 'filings'
 db_client = db_module().client
 db = db_client[db_name]
 
-nasdaq_self_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/nasdaqlisted.txt'
-nasdaq_other_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/otherlisted.txt'
 
 market_category_map = {
   'Q': 'NASDAQ Global Select Market',
@@ -52,7 +50,7 @@ etf_map = {
 }
 
 def process_nasdaq_other_listed_ticker_csv():
-  # download NASDAQ self-listed tickers CSV file
+  nasdaq_other_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/otherlisted.txt'
   req = urllib.request.Request(nasdaq_other_listed_ticker_csv_url)
   with urllib.request.urlopen(req) as response:
     data = response.read().decode("utf-8")
@@ -112,7 +110,7 @@ def process_nasdaq_other_listed_ticker_csv():
 
 
 def process_nasdaq_self_listed_ticker_csv():
-  # download NASDAQ self-listed tickers CSV file
+  nasdaq_self_listed_ticker_csv_url = 'ftp://ftp.nasdaqtrader.com/symboldirectory/nasdaqlisted.txt'
   req = urllib.request.Request(nasdaq_self_listed_ticker_csv_url)
   with urllib.request.urlopen(req) as response:
     data = response.read().decode("utf-8")
@@ -174,7 +172,3 @@ def process_nasdaq_self_listed_ticker_csv():
         db.symbols.update_one({ 'symbol': obj['symbol'] }, update_new_names_query)
 
   print('All done!')
-
-# process the data
-process_nasdaq_self_listed_ticker_csv()
-process_nasdaq_other_listed_ticker_csv()
