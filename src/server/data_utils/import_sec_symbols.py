@@ -70,7 +70,7 @@ def process_sec_ticker_text(url):
 
   # sanity check
   if len(no_matches):
-    print(f'Some lines did not match the search.  See beow:')
+    print(f'Some lines did not match the search.  See below:')
     for line in no_matches:
       pprint(line)
   else:
@@ -147,7 +147,7 @@ def process_sec_company_ticker_json(url):
 
   # sanity check
   if len(empty_data):
-    print(f'Some entries provided no data.  See beow:')
+    print(f'Some entries provided no data.  See below:')
     for entry in empty_data:
       pprint(entry)
   else:
