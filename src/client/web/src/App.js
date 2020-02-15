@@ -76,7 +76,7 @@ class App extends React.Component {
       },
       'stitchInitialized': false,
       'loading': true,
-      'authenticated': false,
+      'authenticated': true,
       'value': '',
     };
 
@@ -104,11 +104,11 @@ class App extends React.Component {
     window.addEventListener('resize', this._updateWindowDimensions);
 
     // set up auth (not secure, for many reasons)
-    const authed = localStorage.getItem('holdings_app_authed');
+    /*const authed = localStorage.getItem('holdings_app_authed');
     
     if(authed) {
       this.setState({ 'authenticated': true });
-    }
+    }*/
 
     this.stitch.init()
     .then(err => {
