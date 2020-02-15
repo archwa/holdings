@@ -106,9 +106,9 @@ class App extends React.Component {
     // set up auth (not secure, for many reasons)
     /*const authed = localStorage.getItem('holdings_app_authed');
     
-    if(authed) {
+    if(authed) {*/
       this.setState({ 'authenticated': true });
-    }*/
+    //}
 
     this.stitch.init()
     .then(err => {
